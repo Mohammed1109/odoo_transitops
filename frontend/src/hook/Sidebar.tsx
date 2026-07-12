@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import NetworkCanvasBackground from "../components/NetworkCanvasBackground";
+import NetworkCanvasBackground from "../components/sidebar/NetworkCanvasBackground";
 
 export default function Sidebar({
   onToggle,
