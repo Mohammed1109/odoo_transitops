@@ -8,8 +8,11 @@ import { toast } from "sonner";
 import type { ColumnWithState } from "../../../components/utils/ManageColumns";
 import ManageColumns from "../../../components/utils/ManageColumns";
 import FormLayout from "../../../components/utils/FormLayout";
-import { createVehicle } from "../../../ts/FleetManagement/vehicle/createVehicle";
-import { getVehicles, type Vehicle } from "../../../ts/FleetManagement/vehicle/getVehicles";
+import { deleteVehicle } from "../../../ts/FleetManagement/vehicle/deleteVehicle";
+import { fetchVehicles } from "../../../ts/FleetManagement/vehicle/fetchVehical";
+import type { Vehicle } from "../../../ts/FleetManagement/vehicle/fetchVehical";
+import { getVehicle } from "../../../ts/FleetManagement/vehicle/getVehicle";
+import { submitVehicle } from "../../../ts/FleetManagement/vehicle/createVehicle";
 
 export type VehicleType = "Van" | "Truck" | "Mini";
 
@@ -971,6 +974,8 @@ const VehicleRegistry = () => {
   const [tableHeight, setTableHeight] = useState("350px");
   const [, setSelectedRows] = useState<Vehicle[]>([]);
 
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingVehicleId, setEditingVehicleId] = useState<number | null>(null);
 
   // ==========================================================
   // VEHICLE INFORMATION
@@ -1071,6 +1076,10 @@ const VehicleRegistry = () => {
     // Clear table selection
     setSelectedRows([]);
 
+    // Exit edit mode
+    setIsEditMode(false);
+    setEditingVehicleId(null);
+
     // Close form
     setIsFormOpen(false);
   };
@@ -1084,7 +1093,7 @@ const VehicleRegistry = () => {
     try {
       setIsLoading(true);
 
-      const response = await getVehicles({
+      const response = await fetchVehicles({
         vehicle_type: typeFilter,
         status: statusFilter,
       });
@@ -1242,25 +1251,147 @@ const VehicleRegistry = () => {
     setIsRefreshing(false);
   };
 
-  const handleEditSelected = (rows: Vehicle[]) => {
+  const handleEditSelected = async (rows: Vehicle[]) => {
     if (rows.length !== 1) {
       toast.warning("Please select exactly one vehicle to edit.");
       return;
     }
-    setSelectedRows(rows);
-    setIsFormOpen(true);
-    // TODO: populate form fields from rows[0], call updateVehicleService()
-    // on submit.
+
+    try {
+      setIsLoading(true);
+
+      const response = await getVehicle(rows[0].id);
+
+      if (!response.success || !response.data) {
+        toast.error("Failed to load vehicle details.");
+        return;
+      }
+
+      const vehicle = response.data;
+
+      setIsEditMode(true);
+      setEditingVehicleId(vehicle.id);
+
+      setSelectedRows([rows[0]]);
+
+      // ======================================================
+      // Vehicle Information
+      // ======================================================
+      setRegistrationNumber(vehicle.registration_number ?? "");
+      setVehicleName(vehicle.vehicle_name ?? "");
+      setVehicleModel(vehicle.vehicle_model ?? "");
+      setManufacturer(vehicle.manufacturer ?? "");
+      setVehicleType(vehicle.vehicle_type ?? "");
+      setColor(vehicle.color ?? "");
+
+      // ======================================================
+      // Capacity
+      // ======================================================
+      setMaximumLoadCapacity(
+        vehicle.maximum_load_capacity?.toString() ?? ""
+      );
+      setCapacityUnit(vehicle.capacity_unit ?? "kg");
+
+      // ======================================================
+      // Vehicle Details
+      // ======================================================
+      setOdometer(vehicle.odometer?.toString() ?? "");
+      setAcquisitionCost(
+        vehicle.acquisition_cost?.toString() ?? ""
+      );
+
+      setPurchaseDate(
+        vehicle.purchase_date
+          ? vehicle.purchase_date.substring(0, 10)
+          : ""
+      );
+
+      setChassisNumber(vehicle.chassis_number ?? "");
+      setEngineNumber(vehicle.engine_number ?? "");
+      setVinNumber(vehicle.vin_number ?? "");
+
+      // ======================================================
+      // Fuel
+      // ======================================================
+      setFuelType(vehicle.fuel_type ?? "");
+
+      setFuelTankCapacity(
+        vehicle.fuel_tank_capacity?.toString() ?? ""
+      );
+
+      // ======================================================
+      // GPS
+      // ======================================================
+      setGpsTrackerId(vehicle.gps_tracker_id ?? "");
+
+      setCurrentLatitude(
+        vehicle.current_latitude?.toString() ?? ""
+      );
+
+      setCurrentLongitude(
+        vehicle.current_longitude?.toString() ?? ""
+      );
+
+      // ======================================================
+      // Documents
+      // ======================================================
+      setInsuranceNumber(vehicle.insurance_number ?? "");
+
+      setInsuranceExpiry(
+        vehicle.insurance_expiry
+          ? vehicle.insurance_expiry.substring(0, 10)
+          : ""
+      );
+
+      setRegistrationExpiry(
+        vehicle.registration_expiry
+          ? vehicle.registration_expiry.substring(0, 10)
+          : ""
+      );
+
+      setPermitExpiry(
+        vehicle.permit_expiry
+          ? vehicle.permit_expiry.substring(0, 10)
+          : ""
+      );
+
+      // ======================================================
+      // Status
+      // ======================================================
+      setStatus(vehicle.status);
+      setIsActive(vehicle.is_active);
+
+      // Finally open the form
+      setIsFormOpen(true);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load vehicle.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDeleteSelected = (rows: Vehicle[]) => {
+  const handleDeleteSelected = async (rows: Vehicle[]) => {
     if (!rows.length) {
       toast.warning("Please select vehicle(s) to delete.");
       return;
     }
-    // TODO: confirm with Swal, call deleteVehiclesService(ids), then
-    // await loadVehicles().
-    console.log("Delete vehicles", rows);
+
+    try {
+      for (const row of rows) {
+        const response = await deleteVehicle(row.id);
+
+        if (!response.success) {
+          toast.error(response.message);
+          return;
+        }
+      }
+
+      toast.success("Vehicle(s) deleted successfully.");
+
+      await loadVehicles();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to delete vehicle.");
+    }
   };
 
   const handleFormSubmit = async () => {
@@ -1288,7 +1419,7 @@ const VehicleRegistry = () => {
         return;
       }
 
-      const response = await createVehicle({
+      const response = await submitVehicle({
         registration_number: registrationNumber.trim(),
 
         vehicle_name: vehicleName.trim(),
@@ -1338,6 +1469,9 @@ const VehicleRegistry = () => {
 
         status,
         is_active: isActive,
+
+        editMode: isEditMode,
+        vehicleId: editingVehicleId,
       });
 
       if (!response.success) {
@@ -1420,6 +1554,8 @@ const VehicleRegistry = () => {
           <button
             onClick={() => {
               resetForm();
+              setIsEditMode(false);
+              setEditingVehicleId(null);
               setIsFormOpen(true);
             }}
             className="flex items-center gap-2 p-2 bg-white border rounded-xl hover:bg-gray-100"

@@ -55,7 +55,7 @@ export interface GetVehiclesParams {
   status?: string;
 }
 
-export async function getVehicles(
+export async function fetchVehicles(
   params: GetVehiclesParams = {}
 ): Promise<GetVehiclesResponse> {
   try {
