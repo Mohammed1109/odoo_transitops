@@ -142,8 +142,8 @@ export default function Sidebar({
               <SidebarItem
                 label="System Settings"
                 icon={<i className="fas fa-sliders-h" />}
-                active={isActive("/system-settings")}
-                onNavigate={() => navigate("/system-settings")}
+                active={isActive("/admin-panel")}
+                onNavigate={() => navigate("/admin-panel")}
               />
 
             </nav>

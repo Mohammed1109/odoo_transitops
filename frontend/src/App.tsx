@@ -6,6 +6,8 @@ import Login from './pages/login/login'
 import Home from './pages/home/home'
 import FirstTimeSetup from './pages/firsttimelogin/Firsttimelogin'
 import MainLayout from './layout/homeLayout'
+import SystemSettingsLayout from './layout/SystemSettingsLayout'
+import Administration from './pages/configuration/administrator/Administration'
 
 function App() {
 
@@ -43,6 +45,19 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/admin-panel"
+          element={
+            <ProtectedRoute>
+              <SystemSettingsLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="administration" replace />} />
+          <Route path="administration" element={<Administration />} />
+          {/* <Route path="smtp" element={<SMTP />} /> */}
+        </Route>
 
       </Routes>
 
