@@ -180,3 +180,8 @@ class Vehicle(Base):
         "Trip",
         back_populates="vehicle",
     )
+
+    maintenances = relationship(
+        "Maintenance",
+        back_populates="vehicle",
+    )
