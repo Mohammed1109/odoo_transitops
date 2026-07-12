@@ -44,3 +44,10 @@ class UserResponse(BaseModel):
     role: str
     is_active: bool
     is_first_login: bool
+
+
+
+class UpdateInitialPasswordRequest(BaseModel):
+    username_or_email: str
+    current_password: str
+    new_password: str

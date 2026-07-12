@@ -136,3 +136,30 @@ def create_default_admin(db: Session) -> None:
 
     db.add(admin_user)
     db.commit()
+
+
+
+def update_initial_password(
+    db: Session,
+    username_or_email: str,
+    current_password: str,
+    new_password: str,
+) -> None:
+
+    user = get_user_by_username_or_email(
+        db,
+        username_or_email,
+    )
+
+    if not user:
+        raise ValueError("User not found.")
+
+    if not verify_password(
+        current_password,
+        user.password_hash,
+    ):
+        raise ValueError("Current password is incorrect.")
+    user.password_hash = hash_password(new_password)
+    user.is_first_login = False
+    user.showupdated = "password_updated"
+    db.commit()
