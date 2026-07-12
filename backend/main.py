@@ -98,9 +98,9 @@ from routes.trips import trips_router
 
 app.include_router(auth_router, prefix="/api", tags=["Authentication"])
 # app.include_router(users_router, prefix="/api/users", tags=["Users"])
-app.include_router(vehicles_router, prefix="/api", tags=["Vehicles"])
-app.include_router(drivers_router, prefix="/api", tags=["Drivers"])
-app.include_router(trips_router, prefix="/api", tags=["Trips"])
+app.include_router(vehicles_router, prefix="/api/vehicles", tags=["Vehicles"])
+app.include_router(drivers_router, prefix="/api/drivers", tags=["Drivers"])
+app.include_router(trips_router, prefix="/api/trips", tags=["Trips"])
 # app.include_router(maintenance_router, prefix="/api/maintenance", tags=["Maintenance"])
 # app.include_router(fuel_router, prefix="/api/fuel", tags=["Fuel"])
 # app.include_router(expenses_router, prefix="/api/expenses", tags=["Expenses"])
