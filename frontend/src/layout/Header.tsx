@@ -145,7 +145,7 @@ export default function Header({
         </button>
 
         <Link to="/home" className="font-semibold text-lg">
-          Netziya
+          TransitOps
         </Link>
       </div>
 

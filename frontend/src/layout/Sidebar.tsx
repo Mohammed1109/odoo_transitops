@@ -168,7 +168,7 @@ export default function Sidebar({
                     </linearGradient>
                   </defs>
                 </svg>
-                <div className="text-lg font-semibold">NETZIYA</div>
+                <div className="text-lg font-semibold">TransitOps</div>
               </div>
               <button
                 onClick={() => setOpen(false)}
