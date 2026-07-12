@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { X, LayoutGrid, Plus } from "lucide-react";
+import { LayoutGrid, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import SearchBar from "../../../components/utils/SearchBar";
@@ -1458,11 +1458,10 @@ const Trip = () => {
 
   // ---- form / modal state -------------------------------------------------
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
-  const [editingTripId, setEditingTripId] = useState<number | null>(null);
-  const [form, setForm] = useState<TripFormState>(EMPTY_TRIP_FORM);
+  const [formLoading, ] = useState(false);
+  const [, setEditingTripId] = useState<number | null>(null);
+  const [, setForm] = useState<TripFormState>(EMPTY_TRIP_FORM);
 
-  const isEditing = editingTripId !== null;
 
   // ==========================================================
   // TRIP INFORMATION
@@ -1806,91 +1805,6 @@ const Trip = () => {
     // Show confirmation dialog, then call DELETE /trips/:id for each row.
   };
 
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-    setEditingTripId(null);
-    setForm(EMPTY_TRIP_FORM);
-  };
-
-  const handleSubmitTrip = async () => {
-    if (!form.tripNumber.trim()) {
-      toast.warning("Trip number is required.");
-      return;
-    }
-
-    if (!form.vehicleId || !form.driverId) {
-      toast.warning("Please select a vehicle and a driver.");
-      return;
-    }
-
-    if (!form.source.trim() || !form.destination.trim()) {
-      toast.warning("Source and destination are required.");
-      return;
-    }
-
-    if (!form.cargoWeight.trim()) {
-      toast.warning("Cargo weight is required.");
-      return;
-    }
-
-    try {
-      setFormLoading(true);
-
-      // TODO: replace with real API call
-      // POST /trips            (create)
-      // PATCH /trips/:id       (update)
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      const vehicleLabel =
-        VEHICLE_OPTIONS.find((option) => option.value === form.vehicleId)
-          ?.label ?? form.vehicleId;
-      const driverLabel =
-        DRIVER_OPTIONS.find((option) => option.value === form.driverId)
-          ?.label ?? form.driverId;
-
-      if (isEditing && editingTripId !== null) {
-        setTrips((prev) =>
-          prev.map((trip) =>
-            trip.id === editingTripId
-              ? {
-                ...trip,
-                tripId: form.tripNumber,
-                source: form.source,
-                destination: form.destination,
-                driver: driverLabel,
-                vehicle: vehicleLabel,
-                cargo: Number(form.cargoWeight) || 0,
-                status: form.status as TripStatus,
-              }
-              : trip
-          )
-        );
-        toast.success("Trip updated successfully.");
-      } else {
-        setTrips((prev) => [
-          ...prev,
-          {
-            id: prev.length ? Math.max(...prev.map((t) => t.id)) + 1 : 1,
-            tripId: form.tripNumber,
-            source: form.source,
-            destination: form.destination,
-            driver: driverLabel,
-            vehicle: vehicleLabel,
-            cargo: Number(form.cargoWeight) || 0,
-            status: form.status as TripStatus,
-          },
-        ]);
-        toast.success("Trip created successfully.");
-      }
-
-      handleCloseForm();
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to save trip.");
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
 
   const handleFormSubmit = async () => {
 
@@ -2021,220 +1935,170 @@ const Trip = () => {
         }}
       />
 
-      {/* Add / Edit Trip Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-5xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <div>
-                <h2 className="text-base font-semibold text-gray-800">
-                  {isEditing ? "Edit Trip" : "Add Trip"}
-                </h2>
-                <p className="text-xs text-gray-500">
-                  {isEditing
-                    ? "Update the details for this trip."
-                    : "Fill in the details to create a new trip."}
-                </p>
-              </div>
+        <FormLayout
+          title="Add Trip"
+          onClose={() => {
+            resetForm();
+            setSelectedRows([]);
+            setIsFormOpen(false);
+          }}
+          onSubmit={handleFormSubmit}
+        >
+          <TripFormFields
+            // ==========================================================
+            // TRIP INFORMATION
+            // ==========================================================
+            tripNumber={tripNumber}
+            setTripNumber={setTripNumber}
 
-              <button
-                onClick={handleCloseForm}
-                disabled={formLoading}
-                className="p-2 rounded-lg hover:bg-gray-100 transition disabled:opacity-50"
-              >
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
-            </div>
+            vehicleId={vehicleId}
+            setVehicleId={setVehicleId}
 
-            {isFormOpen && (
-              <FormLayout
-                title="Add Trip"
-                onClose={() => {
-                  resetForm();
-                  setSelectedRows([]);
-                  setIsFormOpen(false);
-                }}
-                onSubmit={handleFormSubmit}
-              >
-                <TripFormFields
-                  // ==========================================================
-                  // TRIP INFORMATION
-                  // ==========================================================
-                  tripNumber={tripNumber}
-                  setTripNumber={setTripNumber}
+            vehicleOptions={VEHICLE_OPTIONS}
 
-                  vehicleId={vehicleId}
-                  setVehicleId={setVehicleId}
+            driverId={driverId}
+            setDriverId={setDriverId}
 
-                  vehicleOptions={VEHICLE_OPTIONS}
+            driverOptions={DRIVER_OPTIONS}
 
-                  driverId={driverId}
-                  setDriverId={setDriverId}
+            priority={priority}
+            setPriority={setPriority}
 
-                  driverOptions={DRIVER_OPTIONS}
+            status={status}
+            setStatus={setStatus}
 
-                  priority={priority}
-                  setPriority={setPriority}
+            // ==========================================================
+            // ROUTE INFORMATION
+            // ==========================================================
+            source={source}
+            setSource={setSource}
 
-                  status={status}
-                  setStatus={setStatus}
+            destination={destination}
+            setDestination={setDestination}
 
-                  // ==========================================================
-                  // ROUTE INFORMATION
-                  // ==========================================================
-                  source={source}
-                  setSource={setSource}
+            intermediateStop={intermediateStop}
+            setIntermediateStop={setIntermediateStop}
 
-                  destination={destination}
-                  setDestination={setDestination}
+            plannedDistanceKm={plannedDistanceKm}
+            setPlannedDistanceKm={setPlannedDistanceKm}
 
-                  intermediateStop={intermediateStop}
-                  setIntermediateStop={setIntermediateStop}
+            actualDistanceKm={actualDistanceKm}
+            setActualDistanceKm={setActualDistanceKm}
 
-                  plannedDistanceKm={plannedDistanceKm}
-                  setPlannedDistanceKm={setPlannedDistanceKm}
+            // ==========================================================
+            // CARGO INFORMATION
+            // ==========================================================
+            cargoName={cargoName}
+            setCargoName={setCargoName}
 
-                  actualDistanceKm={actualDistanceKm}
-                  setActualDistanceKm={setActualDistanceKm}
+            cargoDescription={cargoDescription}
+            setCargoDescription={setCargoDescription}
 
-                  // ==========================================================
-                  // CARGO INFORMATION
-                  // ==========================================================
-                  cargoName={cargoName}
-                  setCargoName={setCargoName}
+            cargoWeight={cargoWeight}
+            setCargoWeight={setCargoWeight}
 
-                  cargoDescription={cargoDescription}
-                  setCargoDescription={setCargoDescription}
+            cargoUnit={cargoUnit}
+            setCargoUnit={setCargoUnit}
 
-                  cargoWeight={cargoWeight}
-                  setCargoWeight={setCargoWeight}
+            // ==========================================================
+            // CUSTOMER INFORMATION
+            // ==========================================================
+            customerName={customerName}
+            setCustomerName={setCustomerName}
 
-                  cargoUnit={cargoUnit}
-                  setCargoUnit={setCargoUnit}
+            customerPhone={customerPhone}
+            setCustomerPhone={setCustomerPhone}
 
-                  // ==========================================================
-                  // CUSTOMER INFORMATION
-                  // ==========================================================
-                  customerName={customerName}
-                  setCustomerName={setCustomerName}
+            customerEmail={customerEmail}
+            setCustomerEmail={setCustomerEmail}
 
-                  customerPhone={customerPhone}
-                  setCustomerPhone={setCustomerPhone}
+            // ==========================================================
+            // ODOMETER / GPS
+            // ==========================================================
+            startOdometer={startOdometer}
+            setStartOdometer={setStartOdometer}
 
-                  customerEmail={customerEmail}
-                  setCustomerEmail={setCustomerEmail}
+            endOdometer={endOdometer}
+            setEndOdometer={setEndOdometer}
 
-                  // ==========================================================
-                  // ODOMETER / GPS
-                  // ==========================================================
-                  startOdometer={startOdometer}
-                  setStartOdometer={setStartOdometer}
+            startLatitude={startLatitude}
+            setStartLatitude={setStartLatitude}
 
-                  endOdometer={endOdometer}
-                  setEndOdometer={setEndOdometer}
+            startLongitude={startLongitude}
+            setStartLongitude={setStartLongitude}
 
-                  startLatitude={startLatitude}
-                  setStartLatitude={setStartLatitude}
+            endLatitude={endLatitude}
+            setEndLatitude={setEndLatitude}
 
-                  startLongitude={startLongitude}
-                  setStartLongitude={setStartLongitude}
+            endLongitude={endLongitude}
+            setEndLongitude={setEndLongitude}
 
-                  endLatitude={endLatitude}
-                  setEndLatitude={setEndLatitude}
+            // ==========================================================
+            // SCHEDULE
+            // ==========================================================
+            scheduledDate={scheduledDate}
+            setScheduledDate={setScheduledDate}
 
-                  endLongitude={endLongitude}
-                  setEndLongitude={setEndLongitude}
+            dispatchTime={dispatchTime}
+            setDispatchTime={setDispatchTime}
 
-                  // ==========================================================
-                  // SCHEDULE
-                  // ==========================================================
-                  scheduledDate={scheduledDate}
-                  setScheduledDate={setScheduledDate}
+            estimatedArrival={estimatedArrival}
+            setEstimatedArrival={setEstimatedArrival}
 
-                  dispatchTime={dispatchTime}
-                  setDispatchTime={setDispatchTime}
+            completionTime={completionTime}
+            setCompletionTime={setCompletionTime}
 
-                  estimatedArrival={estimatedArrival}
-                  setEstimatedArrival={setEstimatedArrival}
+            // ==========================================================
+            // FUEL & COST
+            // ==========================================================
+            estimatedFuel={estimatedFuel}
+            setEstimatedFuel={setEstimatedFuel}
 
-                  completionTime={completionTime}
-                  setCompletionTime={setCompletionTime}
+            actualFuel={actualFuel}
+            setActualFuel={setActualFuel}
 
-                  // ==========================================================
-                  // FUEL & COST
-                  // ==========================================================
-                  estimatedFuel={estimatedFuel}
-                  setEstimatedFuel={setEstimatedFuel}
+            fuelCost={fuelCost}
+            setFuelCost={setFuelCost}
 
-                  actualFuel={actualFuel}
-                  setActualFuel={setActualFuel}
+            tollCost={tollCost}
+            setTollCost={setTollCost}
 
-                  fuelCost={fuelCost}
-                  setFuelCost={setFuelCost}
+            parkingCost={parkingCost}
+            setParkingCost={setParkingCost}
 
-                  tollCost={tollCost}
-                  setTollCost={setTollCost}
+            otherExpense={otherExpense}
+            setOtherExpense={setOtherExpense}
 
-                  parkingCost={parkingCost}
-                  setParkingCost={setParkingCost}
+            // ==========================================================
+            // NOTES
+            // ==========================================================
+            dispatchedBy={dispatchedBy}
+            setDispatchedBy={setDispatchedBy}
 
-                  otherExpense={otherExpense}
-                  setOtherExpense={setOtherExpense}
+            dispatchNotes={dispatchNotes}
+            setDispatchNotes={setDispatchNotes}
 
-                  // ==========================================================
-                  // NOTES
-                  // ==========================================================
-                  dispatchedBy={dispatchedBy}
-                  setDispatchedBy={setDispatchedBy}
+            completionNotes={completionNotes}
+            setCompletionNotes={setCompletionNotes}
 
-                  dispatchNotes={dispatchNotes}
-                  setDispatchNotes={setDispatchNotes}
+            cancellationReason={cancellationReason}
+            setCancellationReason={setCancellationReason}
 
-                  completionNotes={completionNotes}
-                  setCompletionNotes={setCompletionNotes}
+            // ==========================================================
+            // SYSTEM
+            // ==========================================================
+            isActive={isActive}
+            setIsActive={setIsActive}
 
-                  cancellationReason={cancellationReason}
-                  setCancellationReason={setCancellationReason}
-
-                  // ==========================================================
-                  // SYSTEM
-                  // ==========================================================
-                  isActive={isActive}
-                  setIsActive={setIsActive}
-
-                  // ==========================================================
-                  // FORM STATE
-                  // ==========================================================
-                  formLoading={formLoading}
-                />
-              </FormLayout>
-            )}
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-white">
-              <button
-                onClick={handleCloseForm}
-                disabled={formLoading}
-                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition disabled:opacity-50"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleSubmitTrip}
-                disabled={formLoading}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
-              >
-                {formLoading && (
-                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                )}
-                {isEditing ? "Save Changes" : "Create Trip"}
-              </button>
-            </div>
-          </div>
-        </div>
+            // ==========================================================
+            // FORM STATE
+            // ==========================================================
+            formLoading={formLoading}
+          />
+        </FormLayout>
       )}
+
     </div>
   );
 };

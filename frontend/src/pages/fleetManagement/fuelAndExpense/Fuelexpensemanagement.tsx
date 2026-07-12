@@ -738,7 +738,7 @@ const FuelExpenseManagement = () => {
   // form state left as a placeholder — wire up a FormLayout + fields the
   // same way StudentFormFields is used in Fleet.tsx once you have the
   // fuel log / expense create forms ready.
-  const [, setIsFuelFormOpen] = useState(false);
+  const [isFuelFormOpen, setIsFuelFormOpen] = useState(false);
   const [, setIsExpenseFormOpen] = useState(false);
 
   // ==========================================================
@@ -791,8 +791,8 @@ const FuelExpenseManagement = () => {
   // ==========================================================
   const [formLoading] = useState(false);
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [, setSelectedRows] = useState<FuelLog[]>([]);
+  
   const resetForm = () => {
     // ==========================================================
     // VEHICLE / DRIVER / TRIP
@@ -1195,13 +1195,13 @@ const FuelExpenseManagement = () => {
             }}
           />
 
-          {isFormOpen && (
+          {isFuelFormOpen && (
             <FormLayout
               title="Add Fuel Log"
               onClose={() => {
                 resetForm();
                 setSelectedRows([]);
-                setIsFormOpen(false);
+                setIsFuelFormOpen(false);
               }}
               onSubmit={handleFormSubmit}
             >
