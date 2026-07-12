@@ -28,7 +28,7 @@ role_router = APIRouter()
 # --------------------------------------------------
 
 @role_router.post(
-    "/",
+    "/create_new_role",
     response_model=RoleResponse,
     status_code=status.HTTP_201_CREATED,
 )
@@ -57,7 +57,7 @@ def create_new_role(
 # --------------------------------------------------
 
 @role_router.get(
-    "/",
+    "/get_all_roles",
     response_model=list[RoleResponse],
 )
 def get_all_roles(
@@ -73,7 +73,7 @@ def get_all_roles(
 # --------------------------------------------------
 
 @role_router.get(
-    "/{role_id}",
+    "/get_single_role/{role_id}",
     response_model=RoleResponse,
 )
 def get_single_role(
@@ -101,7 +101,7 @@ def get_single_role(
 # --------------------------------------------------
 
 @role_router.put(
-    "/{role_id}",
+    "/update_role/{role_id}",
     response_model=RoleResponse,
 )
 def update_existing_role(
@@ -134,7 +134,7 @@ def update_existing_role(
 # --------------------------------------------------
 
 @role_router.delete(
-    "/{role_id}",
+    "/delete_role/{role_id}",
 )
 def remove_role(
     role_id: int,

@@ -6,6 +6,14 @@ import FormLayout from "../../../components/utils/FormLayout";
 import ManageColumns, { type ColumnWithState } from "../../../components/utils/ManageColumns";
 import { LayoutGrid, Plus } from "lucide-react";
 import CustomDropdown from "../../../components/utils/CustomDropdown";
+import {
+  fetchRoles,
+  fetchRoleById,
+  createRole,
+  updateRole,
+  deleteRoles,
+  type RoleResponse,
+} from "../../../ts/Administration/role/Roleservice"; // adjust path to wherever you place roleService.ts
 
 /* ------------------------------------------------------
     STATUS OPTIONS (maps to Role.is_active)
@@ -110,10 +118,10 @@ export default function Roles() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
-  const [, setEditRoleId] = useState<number | null>(null);
-  const [isLoading, ] = useState(false);
+  const [editRoleId, setEditRoleId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [tableData, ] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<RoleResponse[]>([]);
 
   const [showSelection, ] = useState<boolean>(true);
   const [tableKey, ] = useState<number>(0);
@@ -123,7 +131,10 @@ export default function Roles() {
   }, []);
 
   const loadRoles = async () => {
-    // TODO: fetch roles from API (GET /roles)
+    const result = await fetchRoles();
+    if (result.success) {
+      setTableData(result.data);
+    }
   };
 
   /* ------------------------------------------------------
@@ -149,8 +160,27 @@ export default function Roles() {
     setEditRoleId(null);
   };
 
-  const handleEditSelected = async (_ids: (string | number)[]) => {
-    // TODO: fetch role by id, populate formData, setEditMode(true), setIsFormOpen(true)
+  const handleEditSelected = async (ids: (string | number)[]) => {
+    if (!ids.length) return;
+
+    const id = Number(ids[0]);
+    setIsLoading(true);
+
+    const result = await fetchRoleById(id);
+
+    if (result.success) {
+      const role = result.data;
+      setFormData({
+        name: role.name ?? "",
+        description: role.description ?? "",
+        is_active: role.is_active ? "true" : "false",
+      });
+      setEditMode(true);
+      setEditRoleId(id);
+      setIsFormOpen(true);
+    }
+
+    setIsLoading(false);
   };
 
   /* ------------------------------------------------------
@@ -164,8 +194,28 @@ export default function Roles() {
      SUBMIT (ADD + EDIT)
   ------------------------------------------------------ */
   const handleFormSubmit = async () => {
-    // TODO: POST /roles (create) or PUT /roles/:id (edit)
-    // payload: { name: formData.name, description: formData.description, is_active: formData.is_active === "true" }
+    if (!formData.name?.trim()) return;
+
+    setIsLoading(true);
+
+    const payload = {
+      name: formData.name,
+      description: formData.description,
+      is_active: formData.is_active === "true",
+    };
+
+    const result =
+      editMode && editRoleId != null
+        ? await updateRole(editRoleId, payload)
+        : await createRole(payload);
+
+    setIsLoading(false);
+
+    if (result.success) {
+      resetForm();
+      setIsFormOpen(false);
+      await loadRoles();
+    }
   };
 
   /* ------------------------------------------------------
@@ -255,8 +305,14 @@ export default function Roles() {
   /* ------------------------------------------------------
       DELETE HANDLER
   ------------------------------------------------------ */
-  const handleDeleteSelected = async (_ids: (string | number)[]) => {
-    // TODO: DELETE /roles/:id for each selected id
+  const handleDeleteSelected = async (ids: (string | number)[]) => {
+    if (!ids.length) return;
+
+    const result = await deleteRoles(ids);
+
+    if (result.success) {
+      await loadRoles();
+    }
   };
 
   let roleFormTitle = "Add Role";
