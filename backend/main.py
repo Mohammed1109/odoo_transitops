@@ -12,6 +12,9 @@ from database.database import (
     create_tables,
 )
 
+from services.auth import create_default_admin
+from database.database import SessionLocal
+
 # -------------------------------
 # Initialize Database
 # -------------------------------
@@ -20,6 +23,16 @@ init_db()
 
 # Create tables during development
 create_tables()
+
+# --------------------------------------------------
+# Create Default Administrator
+# --------------------------------------------------
+db = SessionLocal()
+
+try:
+    create_default_admin(db)
+finally:
+    db.close()
 
 # -------------------------------
 # Create FastAPI Application
@@ -71,18 +84,18 @@ if FRONTEND_DIST.exists():
 # Include Routers
 # -------------------------------
 
-# from routes.auth import router as auth_router
+from routes.auth import auth_router
 # from routes.users import router as users_router
-from routes.vehicles import router as vehicles_router
-from routes.drivers import router as drivers_router
-from routes.trips import router as trips_router
+from routes.vehicles import vehicles_router
+from routes.drivers import drivers_router
+from routes.trips import trips_router
 # from routes.maintenance import router as maintenance_router
 # from routes.fuel import router as fuel_router
 # from routes.expenses import router as expenses_router
 # from routes.dashboard import router as dashboard_router
 # from routes.reports import router as reports_router
 
-# app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 # app.include_router(users_router, prefix="/api/users", tags=["Users"])
 app.include_router(vehicles_router, prefix="/api/vehicles", tags=["Vehicles"])
 app.include_router(drivers_router, prefix="/api/drivers", tags=["Drivers"])
@@ -94,24 +107,8 @@ app.include_router(trips_router, prefix="/api/trips", tags=["Trips"])
 # app.include_router(reports_router, prefix="/api/reports", tags=["Reports"])
 
 # -------------------------------
-# Root Endpoint
+# Health Check
 # -------------------------------
-
-@app.get("/", include_in_schema=False)
-async def react_index():
-    return FileResponse(FRONTEND_DIST / "index.html")
-
-
-@app.get("/{full_path:path}", include_in_schema=False)
-async def react_app(full_path: str):
-
-    requested_file = FRONTEND_DIST / full_path
-
-    if requested_file.exists() and requested_file.is_file():
-        return FileResponse(requested_file)
-
-    return FileResponse(FRONTEND_DIST / "index.html")
-
 @app.get("/health")
 def health():
     return {
@@ -120,10 +117,14 @@ def health():
 
 
 # --------------------------------------------------
-# React SPA
+# React Connection
 # --------------------------------------------------
-
 if FRONTEND_DIST.exists():
+
+    @app.get("/", include_in_schema=False)
+    async def react_index():
+        return FileResponse(FRONTEND_DIST / "index.html")
+
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def react_app(full_path: str):
