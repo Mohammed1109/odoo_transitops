@@ -12,23 +12,23 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Light navy + amber identity — matches the TransitOps login screen.
+// Purple/navy dusk identity — matches the TransitOps login screen background.
 const transitOpsGradient = `
   radial-gradient(
     800px 600px at 85% 15%,
-    rgba(224, 141, 44, 0.18),
+    rgba(167, 139, 250, 0.18),
     transparent 60%
   ),
   radial-gradient(
     700px 500px at 15% 85%,
-    rgba(27, 58, 92, 0.22),
+    rgba(109, 93, 251, 0.22),
     transparent 60%
   ),
   linear-gradient(
     145deg,
-    #0b1f33 0%,
-    #1b3a5c 35%,
-    #2e5478 65%,
+    #0b0f1a 0%,
+    #160b2e 35%,
+    #2e2154 65%,
     #eaf0f6 100%
   )
 `;
