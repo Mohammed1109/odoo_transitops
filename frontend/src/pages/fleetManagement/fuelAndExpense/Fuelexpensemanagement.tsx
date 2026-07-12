@@ -6,6 +6,7 @@ import { LayoutGrid, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { ColumnWithState } from "../../../components/utils/ManageColumns";
 import ManageColumns from "../../../components/utils/ManageColumns";
+import FormLayout from "../../../components/utils/FormLayout";
 
 export type ExpenseStatus = "Available" | "Completed" | "Pending";
 
@@ -88,6 +89,626 @@ const formatLiters = (value: number) => `${value} L`;
 // COMPONENT
 // ==========================================================================
 
+interface FuelFormFieldsProps {
+  // ==========================================================
+  // VEHICLE / DRIVER / TRIP
+  // ==========================================================
+  vehicleId: string;
+  setVehicleId: React.Dispatch<React.SetStateAction<string>>;
+
+  driverId: string;
+  setDriverId: React.Dispatch<React.SetStateAction<string>>;
+
+  tripId: string;
+  setTripId: React.Dispatch<React.SetStateAction<string>>;
+
+  // ==========================================================
+  // FUEL DETAILS
+  // ==========================================================
+  fuelDate: string;
+  setFuelDate: React.Dispatch<React.SetStateAction<string>>;
+
+  fuelType: string;
+  setFuelType: React.Dispatch<React.SetStateAction<string>>;
+
+  liters: string;
+  setLiters: React.Dispatch<React.SetStateAction<string>>;
+
+  pricePerLiter: string;
+  setPricePerLiter: React.Dispatch<React.SetStateAction<string>>;
+
+  totalCost: string;
+  setTotalCost: React.Dispatch<React.SetStateAction<string>>;
+
+  // ==========================================================
+  // ODOMETER
+  // ==========================================================
+  odometer: string;
+  setOdometer: React.Dispatch<React.SetStateAction<string>>;
+
+  // ==========================================================
+  // FUEL STATION
+  // ==========================================================
+  fuelStation: string;
+  setFuelStation: React.Dispatch<React.SetStateAction<string>>;
+
+  stationLocation: string;
+  setStationLocation: React.Dispatch<React.SetStateAction<string>>;
+
+  // ==========================================================
+  // PAYMENT
+  // ==========================================================
+  paymentMethod: string;
+  setPaymentMethod: React.Dispatch<React.SetStateAction<string>>;
+
+  invoiceNumber: string;
+  setInvoiceNumber: React.Dispatch<React.SetStateAction<string>>;
+
+  invoicePath: string;
+  setInvoicePath: React.Dispatch<React.SetStateAction<string>>;
+
+  // ==========================================================
+  // REMARKS
+  // ==========================================================
+  remarks: string;
+  setRemarks: React.Dispatch<React.SetStateAction<string>>;
+
+  createdBy: string;
+  setCreatedBy: React.Dispatch<React.SetStateAction<string>>;
+
+  // ==========================================================
+  // SYSTEM
+  // ==========================================================
+  isActive: boolean;
+  setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // ==========================================================
+  // FORM STATE
+  // ==========================================================
+  formLoading: boolean;
+}
+
+
+const FuelFormFields = ({
+  // ==========================================================
+  // VEHICLE / DRIVER / TRIP
+  // ==========================================================
+  vehicleId,
+  setVehicleId,
+
+  driverId,
+  setDriverId,
+
+  tripId,
+  setTripId,
+
+  // ==========================================================
+  // FUEL DETAILS
+  // ==========================================================
+  fuelDate,
+  setFuelDate,
+
+  fuelType,
+  setFuelType,
+
+  liters,
+  setLiters,
+
+  pricePerLiter,
+  setPricePerLiter,
+
+  totalCost,
+  setTotalCost,
+
+  // ==========================================================
+  // ODOMETER
+  // ==========================================================
+  odometer,
+  setOdometer,
+
+  // ==========================================================
+  // FUEL STATION
+  // ==========================================================
+  fuelStation,
+  setFuelStation,
+
+  stationLocation,
+  setStationLocation,
+
+  // ==========================================================
+  // PAYMENT
+  // ==========================================================
+  paymentMethod,
+  setPaymentMethod,
+
+  invoiceNumber,
+  setInvoiceNumber,
+
+  invoicePath,
+  setInvoicePath,
+
+  // ==========================================================
+  // REMARKS
+  // ==========================================================
+  remarks,
+  setRemarks,
+
+  createdBy,
+  setCreatedBy,
+
+  // ==========================================================
+  // SYSTEM
+  // ==========================================================
+  isActive,
+  setIsActive,
+
+  // ==========================================================
+  // FORM STATE
+  // ==========================================================
+  formLoading,
+}: FuelFormFieldsProps) => {
+
+  return (
+    <div className="space-y-6 relative">
+      {/* FORM LOADER */}
+      {formLoading && (
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-lg z-50">
+          <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        </div>
+      )}
+
+      {/* LAYER 1 : */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
+          <div className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center text-white shadow-sm">
+            <i className="fas fa-gas-pump text-sm"></i>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800">
+              Fuel Information
+            </h3>
+
+            <p className="text-xs text-gray-500">
+              Record vehicle, driver, trip and fuel purchase details for this fuel
+              transaction.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+
+          {/* =======================================================
+        VEHICLE / DRIVER / TRIP
+    ======================================================= */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              Vehicle / Driver / Trip
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              {/* Vehicle ID */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Vehicle ID
+                  <span className="text-red-500"> *</span>
+                </label>
+
+                <input
+                  type="number"
+                  placeholder="Enter Vehicle ID"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={vehicleId}
+                  onChange={(e) => setVehicleId(e.target.value)}
+                  disabled={formLoading}
+                />
+              </div>
+
+              {/* Driver ID */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Driver ID
+                </label>
+
+                <input
+                  type="number"
+                  placeholder="Enter Driver ID"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={driverId}
+                  onChange={(e) => setDriverId(e.target.value)}
+                  disabled={formLoading}
+                />
+              </div>
+
+              {/* Trip ID */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Trip ID
+                </label>
+
+                <input
+                  type="number"
+                  placeholder="Enter Trip ID"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={tripId}
+                  onChange={(e) => setTripId(e.target.value)}
+                  disabled={formLoading}
+                />
+              </div>
+
+            </div>
+          </div>
+
+          {/* =======================================================
+        FUEL DETAILS
+    ======================================================= */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              Fuel Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
+              {/* Fuel Date */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Fuel Date
+                  <span className="text-red-500"> *</span>
+                </label>
+
+                <input
+                  type="date"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={fuelDate}
+                  onChange={(e) => setFuelDate(e.target.value)}
+                  disabled={formLoading}
+                />
+              </div>
+
+              {/* Fuel Type */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Fuel Type
+                  <span className="text-red-500"> *</span>
+                </label>
+
+                <select
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={fuelType}
+                  onChange={(e) => setFuelType(e.target.value)}
+                  disabled={formLoading}
+                >
+                  <option value="">Select Fuel Type</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Petrol">Petrol</option>
+                  <option value="CNG">CNG</option>
+                  <option value="LPG">LPG</option>
+                  <option value="Electric">Electric</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Hydrogen">Hydrogen</option>
+                </select>
+              </div>
+
+              {/* Liters */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Liters
+                  <span className="text-red-500"> *</span>
+                </label>
+
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={liters}
+                  onChange={(e) => setLiters(e.target.value)}
+                  disabled={formLoading}
+                />
+              </div>
+
+              {/* Price Per Liter */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Price / Liter
+                  <span className="text-red-500"> *</span>
+                </label>
+
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={pricePerLiter}
+                  onChange={(e) => setPricePerLiter(e.target.value)}
+                  disabled={formLoading}
+                />
+              </div>
+
+              {/* Total Cost */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Total Cost
+                </label>
+
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Auto / Manual"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  value={totalCost}
+                  onChange={(e) => setTotalCost(e.target.value)}
+                  disabled={formLoading}
+                />
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/*  LAYER 2 : */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
+          <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center text-white shadow-sm">
+            <i className="fas fa-oil-can text-sm"></i>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800">
+              Odometer, Fuel Station & Payment
+            </h3>
+
+            <p className="text-xs text-gray-500">
+              Record odometer reading, fuel station details, payment information and
+              system settings for this fuel transaction.
+            </p>
+          </div>
+        </div>
+
+        {/* =======================================================
+      ODOMETER
+  ======================================================= */}
+        <div className="mb-8">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            Odometer Information
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+
+            {/* Odometer */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Odometer Reading
+                <span className="text-red-500"> *</span>
+              </label>
+
+              <input
+                type="number"
+                step="0.1"
+                placeholder="Enter Odometer Reading"
+                className="w-full border rounded-lg p-2 text-sm"
+                value={odometer}
+                onChange={(e) => setOdometer(e.target.value)}
+                disabled={formLoading}
+              />
+            </div>
+
+          </div>
+        </div>
+
+        {/* =======================================================
+      FUEL STATION
+  ======================================================= */}
+        <div className="mb-8">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            Fuel Station Details
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Fuel Station */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Fuel Station
+              </label>
+
+              <input
+                type="text"
+                placeholder="e.g. Indian Oil, Shell"
+                className="w-full border rounded-lg p-2 text-sm"
+                value={fuelStation}
+                onChange={(e) => setFuelStation(e.target.value)}
+                disabled={formLoading}
+              />
+            </div>
+
+            {/* Station Location */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Station Location
+              </label>
+
+              <input
+                type="text"
+                placeholder="Enter Station Location"
+                className="w-full border rounded-lg p-2 text-sm"
+                value={stationLocation}
+                onChange={(e) => setStationLocation(e.target.value)}
+                disabled={formLoading}
+              />
+            </div>
+
+          </div>
+        </div>
+
+        {/* =======================================================
+      PAYMENT
+  ======================================================= */}
+        <div className="mb-8">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            Payment Information
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            {/* Payment Method */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Payment Method
+              </label>
+
+              <select
+                className="w-full border rounded-lg p-2 text-sm"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                disabled={formLoading}
+              >
+                <option value="">Select Payment Method</option>
+                <option value="Cash">Cash</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Fuel Card">Fuel Card</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            {/* Invoice Number */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Invoice Number
+              </label>
+
+              <input
+                type="text"
+                placeholder="Enter Invoice Number"
+                className="w-full border rounded-lg p-2 text-sm"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                disabled={formLoading}
+              />
+            </div>
+
+            {/* Invoice Path */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Invoice File
+              </label>
+
+              <input
+                type="text"
+                placeholder="Invoice File Path"
+                className="w-full border rounded-lg p-2 text-sm"
+                value={invoicePath}
+                onChange={(e) => setInvoicePath(e.target.value)}
+                disabled={formLoading}
+              />
+            </div>
+
+          </div>
+        </div>
+
+        {/* =======================================================
+      REMARKS
+  ======================================================= */}
+        <div className="mb-8">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            Additional Information
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Created By */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Created By
+              </label>
+
+              <input
+                type="text"
+                placeholder="Enter User Name"
+                className="w-full border rounded-lg p-2 text-sm"
+                value={createdBy}
+                onChange={(e) => setCreatedBy(e.target.value)}
+                disabled={formLoading}
+              />
+            </div>
+
+            {/* Remarks */}
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-gray-700">
+                Remarks
+              </label>
+
+              <textarea
+                rows={4}
+                placeholder="Enter remarks..."
+                className="w-full border rounded-lg p-2 text-sm resize-none"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                disabled={formLoading}
+              />
+            </div>
+
+          </div>
+        </div>
+
+        {/* =======================================================
+      SYSTEM
+  ======================================================= */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            System Settings
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Active */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Fuel Log Status
+              </label>
+
+              <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors">
+
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  disabled={formLoading}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+
+                <div>
+                  <span className="text-sm font-medium text-gray-800">
+                    Active Fuel Log
+                  </span>
+
+                  <p className="text-xs text-gray-500">
+                    Disable this if this fuel record should no longer be considered
+                    active.
+                  </p>
+                </div>
+
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+};
+
 const FuelExpenseManagement = () => {
   // ---- tab state ---------------------------------------------------------
   const [activeTab, setActiveTab] = useState<TabKey>("fuel");
@@ -119,6 +740,106 @@ const FuelExpenseManagement = () => {
   // fuel log / expense create forms ready.
   const [, setIsFuelFormOpen] = useState(false);
   const [, setIsExpenseFormOpen] = useState(false);
+
+  // ==========================================================
+  // VEHICLE / DRIVER / TRIP
+  // ==========================================================
+  const [vehicleId, setVehicleId] = useState("");
+  const [driverId, setDriverId] = useState("");
+  const [tripId, setTripId] = useState("");
+
+  // ==========================================================
+  // FUEL DETAILS
+  // ==========================================================
+  const [fuelDate, setFuelDate] = useState("");
+  const [fuelType, setFuelType] = useState("");
+  const [liters, setLiters] = useState("");
+  const [pricePerLiter, setPricePerLiter] = useState("");
+  const [totalCost, setTotalCost] = useState("");
+
+  // ==========================================================
+  // ODOMETER
+  // ==========================================================
+  const [odometer, setOdometer] = useState("");
+
+  // ==========================================================
+  // FUEL STATION
+  // ==========================================================
+  const [fuelStation, setFuelStation] = useState("");
+  const [stationLocation, setStationLocation] = useState("");
+
+  // ==========================================================
+  // PAYMENT
+  // ==========================================================
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [invoicePath, setInvoicePath] = useState("");
+
+  // ==========================================================
+  // REMARKS
+  // ==========================================================
+  const [remarks, setRemarks] = useState("");
+  const [createdBy, setCreatedBy] = useState("");
+
+  // ==========================================================
+  // SYSTEM
+  // ==========================================================
+  const [isActive, setIsActive] = useState(true);
+
+  // ==========================================================
+  // FORM STATE
+  // ==========================================================
+  const [formLoading] = useState(false);
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [, setSelectedRows] = useState<FuelLog[]>([]);
+  const resetForm = () => {
+    // ==========================================================
+    // VEHICLE / DRIVER / TRIP
+    // ==========================================================
+    setVehicleId("");
+    setDriverId("");
+    setTripId("");
+
+    // ==========================================================
+    // FUEL DETAILS
+    // ==========================================================
+    setFuelDate("");
+    setFuelType("");
+    setLiters("");
+    setPricePerLiter("");
+    setTotalCost("");
+
+    // ==========================================================
+    // ODOMETER
+    // ==========================================================
+    setOdometer("");
+
+    // ==========================================================
+    // FUEL STATION
+    // ==========================================================
+    setFuelStation("");
+    setStationLocation("");
+
+    // ==========================================================
+    // PAYMENT
+    // ==========================================================
+    setPaymentMethod("");
+    setInvoiceNumber("");
+    setInvoicePath("");
+
+    // ==========================================================
+    // REMARKS
+    // ==========================================================
+    setRemarks("");
+    setCreatedBy("");
+
+    // ==========================================================
+    // SYSTEM
+    // ==========================================================
+    setIsActive(true);
+  };
+
 
   const loadData = async () => {
     try {
@@ -364,6 +1085,10 @@ const FuelExpenseManagement = () => {
     { key: "expenses", label: "Other Expenses (Toll / Misc)" },
   ];
 
+  const handleFormSubmit = async () => {
+
+  }
+
   return (
     <div className="flex flex-col gap-3 h-full overflow-hidden bg-gray-100">
       {/* Tab Switcher */}
@@ -372,11 +1097,10 @@ const FuelExpenseManagement = () => {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px ${
-              activeTab === tab.key
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px ${activeTab === tab.key
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
           >
             {tab.label}
           </button>
@@ -471,6 +1195,96 @@ const FuelExpenseManagement = () => {
             }}
           />
 
+          {isFormOpen && (
+            <FormLayout
+              title="Add Fuel Log"
+              onClose={() => {
+                resetForm();
+                setSelectedRows([]);
+                setIsFormOpen(false);
+              }}
+              onSubmit={handleFormSubmit}
+            >
+              <FuelFormFields
+                // ==========================================================
+                // VEHICLE / DRIVER / TRIP
+                // ==========================================================
+                vehicleId={vehicleId}
+                setVehicleId={setVehicleId}
+
+                driverId={driverId}
+                setDriverId={setDriverId}
+
+                tripId={tripId}
+                setTripId={setTripId}
+
+                // ==========================================================
+                // FUEL DETAILS
+                // ==========================================================
+                fuelDate={fuelDate}
+                setFuelDate={setFuelDate}
+
+                fuelType={fuelType}
+                setFuelType={setFuelType}
+
+                liters={liters}
+                setLiters={setLiters}
+
+                pricePerLiter={pricePerLiter}
+                setPricePerLiter={setPricePerLiter}
+
+                totalCost={totalCost}
+                setTotalCost={setTotalCost}
+
+                // ==========================================================
+                // ODOMETER
+                // ==========================================================
+                odometer={odometer}
+                setOdometer={setOdometer}
+
+                // ==========================================================
+                // FUEL STATION
+                // ==========================================================
+                fuelStation={fuelStation}
+                setFuelStation={setFuelStation}
+
+                stationLocation={stationLocation}
+                setStationLocation={setStationLocation}
+
+                // ==========================================================
+                // PAYMENT
+                // ==========================================================
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+
+                invoiceNumber={invoiceNumber}
+                setInvoiceNumber={setInvoiceNumber}
+
+                invoicePath={invoicePath}
+                setInvoicePath={setInvoicePath}
+
+                // ==========================================================
+                // REMARKS
+                // ==========================================================
+                remarks={remarks}
+                setRemarks={setRemarks}
+
+                createdBy={createdBy}
+                setCreatedBy={setCreatedBy}
+
+                // ==========================================================
+                // SYSTEM
+                // ==========================================================
+                isActive={isActive}
+                setIsActive={setIsActive}
+
+                // ==========================================================
+                // FORM STATE
+                // ==========================================================
+                formLoading={formLoading}
+              />
+            </FormLayout>
+          )}
           {/* Manage Columns — Fuel Logs */}
           <ManageColumns
             open={isManageFuelOpen}
