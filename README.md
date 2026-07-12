@@ -235,10 +235,6 @@ frontend/
 
 ## 1. Clone Repository
 
-```bash
-git clone <repository-url>
-```
-
 ---
 
 ## 2. Navigate to Backend
@@ -249,7 +245,7 @@ cd backend
 
 ---
 
-## 3. Create Virtual Environment
+## 3. Create Virtual Environment if needed
 
 Windows
 
