@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import func, or_ #type: ignore
+from sqlalchemy.orm import Session #type: ignore
 
 from database.models.driver import Driver
+from database.types import now_utc
 
 from schemas.driver import (
     DriverCreate,
@@ -218,9 +219,9 @@ def create_driver(
 
         is_active=payload.is_active,
 
-        created_at=datetime.utcnow(),
+        created_at=now_utc(),
 
-        updated_at=datetime.utcnow(),
+        updated_at=now_utc(),
     )
 
     db.add(driver)
@@ -265,34 +266,12 @@ def get_driver(
 
 def get_all_drivers(
     db: Session,
-    page: int = 1,
-    page_size: int = 20,
-    search: str | None = None,
     status: str | None = None,
 ):
 
     query = db.query(Driver).filter(
         Driver.is_active == True
     )
-
-    # ---------------------------------------
-    # Search
-    # ---------------------------------------
-
-    if search:
-
-        search = f"%{search}%"
-
-        query = query.filter(
-            or_(
-                Driver.first_name.ilike(search),
-                Driver.last_name.ilike(search),
-                Driver.employee_id.ilike(search),
-                Driver.license_number.ilike(search),
-                Driver.phone_number.ilike(search),
-                Driver.email.ilike(search),
-            )
-        )
 
     # ---------------------------------------
     # Status Filter
@@ -316,8 +295,6 @@ def get_all_drivers(
 
     drivers = (
         query.order_by(Driver.id.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
         .all()
     )
 
@@ -325,15 +302,7 @@ def get_all_drivers(
 
         "success": True,
 
-        "page": page,
-
-        "page_size": page_size,
-
         "total_records": total,
-
-        "total_pages": (
-            total + page_size - 1
-        ) // page_size,
 
         "data": drivers,
     }
@@ -394,7 +363,7 @@ def update_driver(
             value,
         )
 
-    driver.updated_at = datetime.utcnow()
+    driver.updated_at = now_utc()
 
     db.commit()
 
