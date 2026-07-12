@@ -59,7 +59,6 @@ vehicles_router= APIRouter()
 def create_new_vehicle(
     payload: VehicleCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("Admin")),
 ):
     return create_vehicle(
         db=db,
@@ -115,7 +114,6 @@ def edit_vehicle(
     vehicle_id: int,
     payload: VehicleUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("Admin")),
 ):
     return update_vehicle(
         db=db,
@@ -132,7 +130,6 @@ def edit_vehicle(
 def remove_vehicle(
     vehicle_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("Admin")),
 ):
     return delete_vehicle(
         db=db,
@@ -179,7 +176,6 @@ def dropdown(
 )
 def statistics(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("Admin")),
 ):
     return vehicle_statistics(
         db=db,
@@ -197,9 +193,6 @@ def update_status(
     vehicle_id: int,
     payload: VehicleStatusUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_role("Admin", "Dispatcher")
-    ),
 ):
     return change_vehicle_status(
         db=db,
@@ -218,9 +211,6 @@ def update_odometer(
     vehicle_id: int,
     payload: VehicleOdometerUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_role("Admin", "Dispatcher")
-    ),
 ):
     return update_vehicle_odometer(
         db=db,

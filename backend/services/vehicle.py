@@ -169,6 +169,7 @@ def get_vehicle(
 # ==========================================================
 # Get All Vehicles
 # ==========================================================
+
 def get_all_vehicles(
     db: Session,
     vehicle_type: str | None = None,
@@ -184,6 +185,7 @@ def get_all_vehicles(
     # ---------------------------------------
 
     if vehicle_type:
+
         query = query.filter(
             Vehicle.vehicle_type == vehicle_type
         )
@@ -193,12 +195,19 @@ def get_all_vehicles(
     # ---------------------------------------
 
     if status:
+
         query = query.filter(
             Vehicle.status == status
         )
 
     # ---------------------------------------
-    # Fetch All
+    # Total Count
+    # ---------------------------------------
+
+    total = query.count()
+
+    # ---------------------------------------
+    # Pagination
     # ---------------------------------------
 
     vehicles = (
@@ -207,9 +216,14 @@ def get_all_vehicles(
     )
 
     return {
+
         "success": True,
+
+        "total_records": total,
+
         "data": vehicles,
     }
+
 
 # ==========================================================
 # Update Vehicle

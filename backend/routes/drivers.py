@@ -2,6 +2,11 @@ from fastapi import APIRouter, Depends, Query, Path, status
 from sqlalchemy.orm import Session #type: ignore
 
 from database.database import get_db
+from database.models.user import User
+
+from middleware.auth import (
+    require_auth,
+)
 
 # ==========================================================
 # Schemas
@@ -40,7 +45,7 @@ drivers_router = APIRouter()
 # ==========================================================
 
 @drivers_router.post(
-    "/",
+    "/create_new_driver",
     status_code=status.HTTP_201_CREATED,
     summary="Create Driver",
 )
@@ -59,36 +64,30 @@ def create_new_driver(
 # ==========================================================
 
 @drivers_router.get(
-    "/",
+    "/list_drivers",
     summary="Get All Drivers",
 )
 def list_drivers(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
-    search: str | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth),
 ):
     return get_all_drivers(
         db=db,
-        page=page,
-        page_size=page_size,
-        search=search,
         status=status_filter,
     )
-
 
 # ==========================================================
 # Get Driver Details
 # ==========================================================
-
 @drivers_router.get(
-    "/{driver_id}",
+    "/driver_details/{driver_id}",
     summary="Get Driver Details",
 )
 def driver_details(
     driver_id: int = Path(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth),
 ):
     return get_driver(
         db=db,
@@ -101,7 +100,7 @@ def driver_details(
 # ==========================================================
 
 @drivers_router.put(
-    "/{driver_id}",
+    "/edit_driver/{driver_id}",
     summary="Update Driver",
 )
 def edit_driver(
@@ -121,7 +120,7 @@ def edit_driver(
 # ==========================================================
 
 @drivers_router.delete(
-    "/{driver_id}",
+    "/remove_driver/{driver_id}",
     summary="Delete Driver",
 )
 def remove_driver(
@@ -139,11 +138,12 @@ def remove_driver(
 # ==========================================================
 
 @drivers_router.get(
-    "/available/list",
+    "/available_drivers",
     summary="Available Drivers",
 )
 def available_drivers(
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth),
 ):
     return get_available_drivers(
         db=db,
@@ -155,11 +155,12 @@ def available_drivers(
 # ==========================================================
 
 @drivers_router.get(
-    "/dropdown/list",
+    "/dropdown",
     summary="Driver Dropdown",
 )
 def dropdown(
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth),
 ):
     return get_driver_dropdown(
         db=db,
@@ -171,7 +172,7 @@ def dropdown(
 # ==========================================================
 
 @drivers_router.get(
-    "/statistics/summary",
+    "/statistics",
     summary="Driver Statistics",
 )
 def statistics(
@@ -187,7 +188,7 @@ def statistics(
 # ==========================================================
 
 @drivers_router.patch(
-    "/{driver_id}/status",
+    "/update_status/{driver_id}",
     summary="Update Driver Status",
 )
 def update_status(
@@ -207,7 +208,7 @@ def update_status(
 # ==========================================================
 
 @drivers_router.patch(
-    "/{driver_id}/safety",
+    "/update_safety/{driver_id}",
     summary="Update Driver Safety Score",
 )
 def update_safety(
@@ -227,12 +228,13 @@ def update_safety(
 # ==========================================================
 
 @drivers_router.get(
-    "/{driver_id}/location",
+    "driver_location/{driver_id}",
     summary="Driver Live Location",
 )
 def driver_location(
     driver_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth),
 ):
     return get_driver_location(
         db=db,

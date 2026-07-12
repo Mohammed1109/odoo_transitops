@@ -114,22 +114,6 @@ class Driver(Base):
     current_vehicle_id = Column(Integer)
 
     # ==========================================================
-    # Documents
-    # ==========================================================
-
-    aadhaar_number = Column(UString(20))
-
-    pan_number = Column(UString(20))
-
-    profile_photo = Column(UString(500))
-
-    driving_license_document = Column(UString(500))
-
-    medical_certificate = Column(UString(500))
-
-    police_verification_document = Column(UString(500))
-
-    # ==========================================================
     # GPS / Mobile
     # ==========================================================
 
