@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { authHeaders } from "../../../ts/utils/authHeaders"; // adjust path to wherever you save authHeaders.ts
 
 const BASE_URL = `${globalThis.location.origin}/api/roles`;
 
@@ -59,7 +60,9 @@ function handleApiError(error: any): { error: string } {
  */
 export async function fetchRoles(): Promise<ApiResult<RoleResponse[]>> {
     try {
-        const response = await axios.get(`${BASE_URL}/get_all_roles`);
+        const response = await axios.get(`${BASE_URL}/get_all_roles`, {
+            headers: authHeaders(),
+        });
         return { success: true, data: response.data };
     } catch (error: any) {
         const { error: msg } = handleApiError(error);
@@ -72,7 +75,9 @@ export async function fetchRoles(): Promise<ApiResult<RoleResponse[]>> {
  */
 export async function fetchRoleById(roleId: number): Promise<ApiResult<RoleResponse>> {
     try {
-        const response = await axios.get(`${BASE_URL}/get_single_role/${roleId}`);
+        const response = await axios.get(`${BASE_URL}/get_single_role/${roleId}`, {
+            headers: authHeaders(),
+        });
         return { success: true, data: response.data };
     } catch (error: any) {
         const { error: msg } = handleApiError(error);
@@ -90,10 +95,14 @@ export async function createRole(payload: RolePayload): Promise<ApiResult<RoleRe
             return { success: false, error: "Role name is required" };
         }
 
-        const response = await axios.post(`${BASE_URL}/create_new_role`, {
-            name: payload.name,
-            description: payload.description ?? "",
-        });
+        const response = await axios.post(
+            `${BASE_URL}/create_new_role`,
+            {
+                name: payload.name,
+                description: payload.description ?? "",
+            },
+            { headers: authHeaders() }
+        );
 
         toast.success("Role created successfully");
         return { success: true, data: response.data };
@@ -116,11 +125,15 @@ export async function updateRole(
             return { success: false, error: "Role name is required" };
         }
 
-        const response = await axios.put(`${BASE_URL}/update_role/${roleId}`, {
-            name: payload.name,
-            description: payload.description ?? "",
-            is_active: payload.is_active ?? true,
-        });
+        const response = await axios.put(
+            `${BASE_URL}/update_role/${roleId}`,
+            {
+                name: payload.name,
+                description: payload.description ?? "",
+                is_active: payload.is_active ?? true,
+            },
+            { headers: authHeaders() }
+        );
 
         toast.success("Role updated successfully");
         return { success: true, data: response.data };
@@ -135,7 +148,9 @@ export async function updateRole(
  */
 export async function deleteRole(roleId: number): Promise<ApiResult<{ message: string }>> {
     try {
-        const response = await axios.delete(`${BASE_URL}/delete_role/${roleId}`);
+        const response = await axios.delete(`${BASE_URL}/delete_role/${roleId}`, {
+            headers: authHeaders(),
+        });
         toast.success("Role deleted successfully");
         return { success: true, data: response.data };
     } catch (error: any) {
@@ -149,7 +164,11 @@ export async function deleteRole(roleId: number): Promise<ApiResult<{ message: s
  */
 export async function deleteRoles(roleIds: (string | number)[]): Promise<ApiResult<null>> {
     try {
-        await Promise.all(roleIds.map((id) => axios.delete(`${BASE_URL}/delete_role/${id}`)));
+        await Promise.all(
+            roleIds.map((id) =>
+                axios.delete(`${BASE_URL}/delete_role/${id}`, { headers: authHeaders() })
+            )
+        );
         toast.success(
             roleIds.length > 1 ? "Roles deleted successfully" : "Role deleted successfully"
         );
