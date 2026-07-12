@@ -1,8 +1,9 @@
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, or_
-from sqlalchemy.orm import Session
+from constants.status import VehicleStatus
+from sqlalchemy import func, or_ #type:ignore
+from sqlalchemy.orm import Session #type: ignore
 
 from database.models.vehicle import Vehicle
 
@@ -495,10 +496,10 @@ def change_vehicle_status(
     )
 
     valid_status = [
-        "Available",
-        "On Trip",
-        "In Shop",
-        "Retired",
+        VehicleStatus.AVAILABLE,
+        VehicleStatus.ON_TRIP,
+        VehicleStatus.IN_SHOP,
+        VehicleStatus.RETIRED,
     ]
 
     if payload.status not in valid_status:
