@@ -177,12 +177,15 @@ backend/
     services/
     utils/
     constants/
+    ---
 
 frontend/
     src/
         components/
         pages/
         services/
+
+    ---
 ```
 
 ---
