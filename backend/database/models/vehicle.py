@@ -1,50 +1,138 @@
-from sqlalchemy import Boolean, Column, Date, DateTime, Float, Integer, String #type: ignore
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, Date, Float, Integer #type: ignore
+from sqlalchemy.orm import relationship  # type: ignore
 
 from database.database import Base
+from database.types import (
+    UTCDateTime,
+    UString,
+    now_utc,
+)
 
 
 class Vehicle(Base):
+
     __tablename__ = "vehicles"
 
-    id = Column(Integer, primary_key=True, index=True)
-    registration_number = Column(String(50), unique=True, nullable=False, index=True)
-    vehicle_name = Column(String(150), nullable=False)
-    vehicle_model = Column(String(150))
+    # ==========================================================
+    # Primary Key
+    # ==========================================================
 
-    manufacturer = Column(String(100))
+    id = Column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
 
-    vehicle_type = Column(String(50), nullable=False)
+    # ==========================================================
+    # Vehicle Information
+    # ==========================================================
 
-    maximum_load_capacity = Column(Float, nullable=False)
+    registration_number = Column(
+        UString(50),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
 
-    capacity_unit = Column(String(10), default="kg")
+    vehicle_name = Column(
+        UString(150),
+        nullable=False,
+    )
 
-    odometer = Column(Float, default=0)
+    vehicle_model = Column(
+        UString(150),
+    )
 
-    acquisition_cost = Column(Float, default=0)
+    manufacturer = Column(
+        UString(100),
+    )
+
+    vehicle_type = Column(
+        UString(50),
+        nullable=False,
+    )
+
+    color = Column(
+        UString(50),
+    )
+
+    # ==========================================================
+    # Capacity
+    # ==========================================================
+
+    maximum_load_capacity = Column(
+        Float,
+        nullable=False,
+    )
+
+    capacity_unit = Column(
+        UString(10),
+        default="kg",
+    )
+
+    # ==========================================================
+    # Vehicle Details
+    # ==========================================================
+
+    odometer = Column(
+        Float,
+        default=0,
+    )
+
+    acquisition_cost = Column(
+        Float,
+        default=0,
+    )
 
     purchase_date = Column(Date)
 
-    color = Column(String(50))
+    chassis_number = Column(
+        UString(100),
+    )
 
-    chassis_number = Column(String(100))
+    engine_number = Column(
+        UString(100),
+    )
 
-    engine_number = Column(String(100))
+    vin_number = Column(
+        UString(100),
+    )
 
-    vin_number = Column(String(100))
+    # ==========================================================
+    # Fuel
+    # ==========================================================
 
-    fuel_type = Column(String(30))
+    fuel_type = Column(
+        UString(30),
+    )
 
-    fuel_tank_capacity = Column(Float)
+    fuel_tank_capacity = Column(
+        Float,
+    )
 
-    gps_tracker_id = Column(String(100))
+    # ==========================================================
+    # GPS
+    # ==========================================================
 
-    current_latitude = Column(Float)
+    gps_tracker_id = Column(
+        UString(100),
+    )
 
-    current_longitude = Column(Float)
+    current_latitude = Column(
+        Float,
+    )
 
-    insurance_number = Column(String(100))
+    current_longitude = Column(
+        Float,
+    )
+
+    # ==========================================================
+    # Documents
+    # ==========================================================
+
+    insurance_number = Column(
+        UString(100),
+    )
 
     insurance_expiry = Column(Date)
 
@@ -52,18 +140,43 @@ class Vehicle(Base):
 
     permit_expiry = Column(Date)
 
+    # ==========================================================
+    # Status
+    # ==========================================================
+
     status = Column(
-        String(30),
-        default="Available"
+        UString(30),
+        default="Available",
     )
 
-    is_active = Column(Boolean, default=True)
+    is_active = Column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
 
-    created_at = Column(DateTime)
+    # ==========================================================
+    # System
+    # ==========================================================
 
-    updated_at = Column(DateTime)
+    created_at = Column(
+        UTCDateTime(),
+        default=now_utc,
+        nullable=False,
+    )
+
+    updated_at = Column(
+        UTCDateTime(),
+        default=now_utc,
+        onupdate=now_utc,
+        nullable=False,
+    )
+
+    # ==========================================================
+    # Relationships
+    # ==========================================================
 
     trips = relationship(
-    "Trip",
-    back_populates="vehicle",
-)
+        "Trip",
+        back_populates="vehicle",
+    )

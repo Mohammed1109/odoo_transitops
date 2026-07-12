@@ -15,6 +15,7 @@ from database.database import (
 from services.auth import create_default_admin
 import database.database as database
 
+
 # -------------------------------
 # Initialize Database
 # -------------------------------

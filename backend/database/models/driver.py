@@ -1,16 +1,9 @@
-from sqlalchemy import (
-    Boolean,
-    Column,
-    Date,
-    DateTime,
-    Float,
-    Integer,
-    String,
-)
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, Date, Float, Integer #type:ignore
+
+from sqlalchemy.orm import relationship  # type: ignore
 
 from database.database import Base
+from database.types import UTCDateTime, UString, now_utc
 
 
 class Driver(Base):
@@ -21,114 +14,69 @@ class Driver(Base):
     # Primary Key
     # ==========================================================
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     # ==========================================================
     # Personal Information
     # ==========================================================
-
-    first_name = Column(String(100), nullable=False)
-
-    last_name = Column(String(100), nullable=False)
-
+    first_name = Column(UString(100), nullable=False)
+    last_name = Column(UString(100), nullable=False)
     employee_id = Column(
-        String(50),
+        UString(50),
         unique=True,
         nullable=False,
         index=True,
     )
 
     email = Column(
-        String(150),
+        UString(150),
         unique=True,
         nullable=True,
     )
 
-    phone_number = Column(
-        String(20),
-        nullable=False,
-    )
-
-    emergency_contact = Column(String(20))
-
-    address = Column(String(300))
-
-    city = Column(String(100))
-
-    state = Column(String(100))
-
-    country = Column(String(100))
-
-    postal_code = Column(String(20))
-
+    phone_number = Column(UString(20), nullable=False)
+    emergency_contact = Column(UString(20))
+    address = Column(UString(300))
+    city = Column(UString(100))
+    state = Column(UString(100))
+    country = Column(UString(100))
+    postal_code = Column(UString(20))
     date_of_birth = Column(Date)
-
-    gender = Column(String(20))
-
-    blood_group = Column(String(10))
+    gender = Column(UString(20))
+    blood_group = Column(UString(10))
 
     # ==========================================================
     # Employment Details
     # ==========================================================
-
     joining_date = Column(Date)
-
-    designation = Column(String(100))
-
-    department = Column(String(100))
-
+    designation = Column(UString(100))
+    department = Column(UString(100))
     experience_years = Column(Integer, default=0)
-
-    employee_type = Column(
-        String(30),
-        default="Permanent",
-    )
+    employee_type = Column(UString(30), default="Permanent")
 
     # ==========================================================
     # Driving License
     # ==========================================================
-
     license_number = Column(
-        String(100),
+        UString(100),
         unique=True,
         nullable=False,
         index=True,
     )
 
-    license_category = Column(
-        String(50),
-        nullable=False,
-    )
-
+    license_category = Column(UString(50), nullable=False,)
     license_issue_date = Column(Date)
-
-    license_expiry_date = Column(
-        Date,
-        nullable=False,
-    )
-
-    issuing_authority = Column(String(150))
+    license_expiry_date = Column(Date,nullable=False)
+    issuing_authority = Column(UString(150))
 
     # ==========================================================
     # Safety & Compliance
     # ==========================================================
+    safety_score = Column(Float, default=100)
+    accident_count = Column(Integer, default=0)
+    violation_count = Column(Integer,default=0)
 
-    safety_score = Column(
-        Float,
-        default=100,
-    )
-
-    accident_count = Column(
-        Integer,
-        default=0,
-    )
-
-    violation_count = Column(
-        Integer,
-        default=0,
-    )
-
-    suspension_reason = Column(String(300))
+    suspension_reason = Column(UString(300))
 
     # ==========================================================
     # Driver Performance
@@ -159,7 +107,7 @@ class Driver(Base):
     # ==========================================================
 
     status = Column(
-        String(30),
+        UString(30),
         default="Available",
     )
 
@@ -169,35 +117,35 @@ class Driver(Base):
     # Documents
     # ==========================================================
 
-    aadhaar_number = Column(String(20))
+    aadhaar_number = Column(UString(20))
 
-    pan_number = Column(String(20))
+    pan_number = Column(UString(20))
 
-    profile_photo = Column(String(500))
+    profile_photo = Column(UString(500))
 
-    driving_license_document = Column(String(500))
+    driving_license_document = Column(UString(500))
 
-    medical_certificate = Column(String(500))
+    medical_certificate = Column(UString(500))
 
-    police_verification_document = Column(String(500))
+    police_verification_document = Column(UString(500))
 
     # ==========================================================
     # GPS / Mobile
     # ==========================================================
 
-    device_id = Column(String(100))
+    device_id = Column(UString(100))
 
     last_known_latitude = Column(Float)
 
     last_known_longitude = Column(Float)
 
-    last_location_update = Column(DateTime)
+    last_location_update = Column(UTCDateTime())
 
     # ==========================================================
     # Additional Notes
     # ==========================================================
 
-    remarks = Column(String(1000))
+    remarks = Column(UString(1000))
 
     # ==========================================================
     # System
@@ -206,20 +154,22 @@ class Driver(Base):
     is_active = Column(
         Boolean,
         default=True,
+        nullable=False,
     )
 
     created_at = Column(
-        DateTime,
-        server_default=func.now(),
+        UTCDateTime(),
+        default=now_utc,
         nullable=False,
     )
 
     updated_at = Column(
-        DateTime,
-        server_default=func.now(),
-        onupdate=func.now(),
+        UTCDateTime(),
+        default=now_utc,
+        onupdate=now_utc,
         nullable=False,
     )
+
     # ==========================================================
     # Relationships
     # ==========================================================
