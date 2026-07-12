@@ -48,14 +48,13 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSending, ] = useState(false);
+  const [forgotSending,] = useState(false);
 
   const handleLogin = async (
     e: React.FormEvent<HTMLFormElement>
@@ -63,7 +62,7 @@ export default function Login() {
     e.preventDefault();
 
     if (!email.trim() || !password.trim()) {
-      setError("Email and password are required.");
+      setError("Username/Email and password are required.");
       return;
     }
 
@@ -72,12 +71,12 @@ export default function Login() {
       setError("");
 
       const result = await authenticateUserReact(
-        email,
+        email.trim(),
         password
       );
 
       if (!result.success) {
-        setError(result.message || "Invalid email or password.");
+        setError(result.message || "Invalid username/email or password.");
         toast.error(result.message || "Login failed.");
         return;
       }
@@ -90,7 +89,7 @@ export default function Login() {
 
       // Force password reset on first login
       if (user.is_first_login) {
-        navigate("/reset-password");
+        navigate("/resetuser");
         return;
       }
 
@@ -119,8 +118,11 @@ export default function Login() {
     } catch (error: any) {
       console.error(error);
 
-      setError(error.message || "Something went wrong.");
-      toast.error(error.message || "Unable to login.");
+      const message =
+        error?.message || "Something went wrong. Please try again.";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -252,7 +254,7 @@ export default function Login() {
                       className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
                     />
                     <input
-                      type="email"
+                      type="text"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
@@ -297,16 +299,6 @@ export default function Login() {
                     </button>
                   </div>
                 </div>
-
-                <label className="flex items-center gap-2 text-[13px] text-gray-600 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-[15px] h-[15px] accent-[#7C6DFF] cursor-pointer"
-                  />
-                  Remember me
-                </label>
 
                 <button
                   type="submit"
