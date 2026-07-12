@@ -97,14 +97,20 @@ app.include_router(vehicles_router, prefix="/api/vehicles", tags=["Vehicles"])
 # Root Endpoint
 # -------------------------------
 
-@app.get("/")
-def root():
-    return {
-        "application": "TransitOps",
-        "version": "1.0.0",
-        "status": "Running",
-    }
+@app.get("/", include_in_schema=False)
+async def react_index():
+    return FileResponse(FRONTEND_DIST / "index.html")
 
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def react_app(full_path: str):
+
+    requested_file = FRONTEND_DIST / full_path
+
+    if requested_file.exists() and requested_file.is_file():
+        return FileResponse(requested_file)
+
+    return FileResponse(FRONTEND_DIST / "index.html")
 
 @app.get("/health")
 def health():

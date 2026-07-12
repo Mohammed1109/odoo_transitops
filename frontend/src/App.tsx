@@ -8,6 +8,7 @@ import FirstTimeSetup from './pages/firsttimelogin/Firsttimelogin'
 import MainLayout from './layout/homeLayout'
 import SystemSettingsLayout from './layout/SystemSettingsLayout'
 import Administration from './pages/configuration/administrator/Administration'
+import SMTP from './pages/configuration/smtp/SMTP'
 
 function App() {
 
@@ -56,7 +57,7 @@ function App() {
         >
           <Route index element={<Navigate to="administration" replace />} />
           <Route path="administration" element={<Administration />} />
-          {/* <Route path="smtp" element={<SMTP />} /> */}
+          <Route path="smtp" element={<SMTP />} />
         </Route>
 
       </Routes>

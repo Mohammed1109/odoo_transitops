@@ -448,17 +448,17 @@ export default function Administration() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
-  const [editAdminId, setEditAdminId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setEditAdminId] = useState<number | null>(null);
+  const [isLoading, ] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [tableData, setTableData] = useState<any[]>([]);
+  const [tableData, ] = useState<any[]>([]);
 
   // near top of Administration()
-  const [showSelection, setShowSelection] = useState<boolean>(true); // default true
-  const [tableKey, setTableKey] = useState<number>(0);
+  const [showSelection, ] = useState<boolean>(true); // default true
+  const [tableKey, ] = useState<number>(0);
 
 
   useEffect(() => {
