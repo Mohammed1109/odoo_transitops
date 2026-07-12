@@ -1,4 +1,5 @@
 from sqlalchemy import Boolean, Column, Date, DateTime, Float, Integer, String #type: ignore
+from sqlalchemy.orm import relationship
 
 from database.database import Base
 
@@ -61,3 +62,8 @@ class Vehicle(Base):
     created_at = Column(DateTime)
 
     updated_at = Column(DateTime)
+
+    trips = relationship(
+    "Trip",
+    back_populates="vehicle",
+)
