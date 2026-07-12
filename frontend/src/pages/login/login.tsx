@@ -10,9 +10,10 @@ import {
   ShieldCheck,
   Truck,
   ArrowRight,
+
+  MapPin,
   TrendingUp,
   DollarSign,
-  MapPin,
 } from "lucide-react";
 
 import {
@@ -24,7 +25,6 @@ import {
   type Role,
 } from "../../ts/login/login";
 
-// ---- Brand panel content -------------------------------------------------
 
 const FEATURES = [
   {
