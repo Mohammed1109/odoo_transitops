@@ -8,95 +8,99 @@ import { toast } from "sonner";
 import type { ColumnWithState } from "../../../components/utils/ManageColumns";
 import ManageColumns from "../../../components/utils/ManageColumns";
 
-export type VehicleType = "Van" | "Truck" | "Mini";
+export type LicenseCategory = "LMV" | "HMV";
 
-export type VehicleStatus = "Available" | "On Trip" | "In Shop" | "Retired";
+export type DriverStatus = "Available" | "On Trip" | "Off Duty" | "Suspended";
 
-export interface Vehicle {
+export interface Driver {
   id: number;
-  regNumber: string; // "REG. NO. (UNIQUE)"
-  nameOrMode: string; // "NAME/MODE"
-  type: VehicleType; // "TYPE"
-  capacity: string; // "CAPACITY" e.g. "500 kg" / "5 Ton"
-  odometer: number; // "ODOMETER"
-  acquisitionCost: number; // "ACQ. COST"
-  status: VehicleStatus; // "STATUS"
+  name: string; // "DRIVER"
+  licenseNo: string; // "LICENSE NO."
+  category: LicenseCategory; // "CATEGORY"
+  licenseExpiry: string; // "EXPIRY" e.g. "12/2028"
+  contact: string; // "CONTACT"
+  tripCompletionRate: number; // "TRIP COMPL." e.g. 96 -> "96%"
+  safety: DriverStatus; // "SAFETY"
+  status: DriverStatus; // "STATUS"
 }
 
 // ==========================================================================
 // MOCK DATA
-// Replace this with a call to your vehicles service, e.g.:
-//   const data = await getVehiclesService();
-//   setVehicles(data);
+// Replace this with a call to your drivers service, e.g.:
+//   const data = await getDriversService();
+//   setDrivers(data);
 // ==========================================================================
 
-const MOCK_VEHICLES: Vehicle[] = [
+const MOCK_DRIVERS: Driver[] = [
   {
     id: 1,
-    regNumber: "GJ01AB4521",
-    nameOrMode: "VAN-05",
-    type: "Van",
-    capacity: "500 kg",
-    odometer: 74000,
-    acquisitionCost: 620000,
+    name: "Alex",
+    licenseNo: "DL-88213",
+    category: "LMV",
+    licenseExpiry: "12/2028",
+    contact: "98765xxxxx",
+    tripCompletionRate: 96,
+    safety: "Available",
     status: "Available",
   },
   {
     id: 2,
-    regNumber: "GJ01AB9981",
-    nameOrMode: "TRUCK-11",
-    type: "Truck",
-    capacity: "5 Ton",
-    odometer: 182000,
-    acquisitionCost: 2450000,
-    status: "On Trip",
+    name: "John",
+    licenseNo: "DL-44120",
+    category: "HMV",
+    licenseExpiry: "03/2025",
+    contact: "98220xxxxx",
+    tripCompletionRate: 81,
+    safety: "Suspended",
+    status: "Suspended",
   },
   {
     id: 3,
-    regNumber: "GJ01AB1120",
-    nameOrMode: "MINI-03",
-    type: "Mini",
-    capacity: "1 Ton",
-    odometer: 66000,
-    acquisitionCost: 410000,
-    status: "In Shop",
+    name: "Priya",
+    licenseNo: "DL-77031",
+    category: "LMV",
+    licenseExpiry: "08/2027",
+    contact: "99110xxxxx",
+    tripCompletionRate: 99,
+    safety: "On Trip",
+    status: "On Trip",
   },
   {
     id: 4,
-    regNumber: "GJ01AB0008",
-    nameOrMode: "VAN-09",
-    type: "Van",
-    capacity: "750 kg",
-    odometer: 241900,
-    acquisitionCost: 590000,
-    status: "Retired",
+    name: "Suresh",
+    licenseNo: "DL-90045",
+    category: "HMV",
+    licenseExpiry: "01/2027",
+    contact: "97440xxxxx",
+    tripCompletionRate: 88,
+    safety: "Available",
+    status: "Off Duty",
   },
 ];
 
-const VEHICLE_TYPE_OPTIONS: { label: string; value: string }[] = [
+const DRIVER_CATEGORY_OPTIONS: { label: string; value: string }[] = [
   { label: "All", value: "All" },
-  { label: "Van", value: "Van" },
-  { label: "Truck", value: "Truck" },
-  { label: "Mini", value: "Mini" },
+  { label: "LMV", value: "LMV" },
+  { label: "HMV", value: "HMV" },
 ];
 
-const VEHICLE_STATUS_OPTIONS: { label: string; value: string }[] = [
+const DRIVER_STATUS_OPTIONS: { label: string; value: string }[] = [
   { label: "All", value: "All" },
   { label: "Available", value: "Available" },
   { label: "On Trip", value: "On Trip" },
-  { label: "In Shop", value: "In Shop" },
-  { label: "Retired", value: "Retired" },
+  { label: "Off Duty", value: "Off Duty" },
+  { label: "Suspended", value: "Suspended" },
 ];
 
 // Badge styling per status, matched to the reference screenshot's colors.
-const STATUS_BADGE_STYLES: Record<VehicleStatus, string> = {
+const STATUS_BADGE_STYLES: Record<DriverStatus, string> = {
   Available: "bg-emerald-100 text-emerald-700",
   "On Trip": "bg-blue-100 text-blue-700",
-  "In Shop": "bg-amber-100 text-amber-700",
-  Retired: "bg-rose-100 text-rose-600",
+  "Off Duty": "bg-gray-200 text-gray-600",
+  Suspended: "bg-amber-100 text-amber-700",
 };
 
-const StatusBadge = ({ status }: { status: VehicleStatus }) => (
+const StatusBadge = ({ status }: { status: DriverStatus }) => (
   <span
     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${STATUS_BADGE_STYLES[status]}`}
   >
@@ -104,23 +108,41 @@ const StatusBadge = ({ status }: { status: VehicleStatus }) => (
   </span>
 );
 
-const formatCurrency = (value: number) => value.toLocaleString("en-IN");
+// Helper — a license is treated as expired once its MM/YYYY has passed.
+const isLicenseExpired = (expiry: string) => {
+  const [month, year] = expiry.split("/").map(Number);
+  if (!month || !year) return false;
+  const expiryDate = new Date(year, month, 0); // last day of that month
+  return expiryDate.getTime() < Date.now();
+};
 
-const formatOdometer = (value: number) => value.toLocaleString("en-IN");
+const ExpiryCell = ({ expiry }: { expiry: string }) => {
+  const expired = isLicenseExpired(expiry);
+  return (
+    <span
+      className={expired ? "text-rose-600 font-semibold" : "text-gray-700"}
+    >
+      {expiry}
+      {expired && " (Expired)"}
+    </span>
+  );
+};
+
+const formatTripCompletion = (value: number) => `${value}%`;
 
 // ==========================================================================
 // COMPONENT
 // ==========================================================================
 
-const VehicleRegistry = () => {
+const DriverRegistry = () => {
   // ---- data state -------------------------------------------------------
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
 
   // ---- filter / search state ---------------------------------------------
-  const [typeFilter, setTypeFilter] = useState<string>("All");
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [inputValue, setInputValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -129,28 +151,28 @@ const VehicleRegistry = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [tableHeight, setTableHeight] = useState("350px");
-  const [, setSelectedRows] = useState<Vehicle[]>([]);
+  const [, setSelectedRows] = useState<Driver[]>([]);
 
   // form state left as a placeholder — wire up a FormLayout + fields the
   // same way StudentFormFields is used in Fleet.tsx once you have the
-  // vehicle create/edit form ready.
+  // driver create/edit form ready.
   const [, setIsFormOpen] = useState(false);
 
-  const loadVehicles = async () => {
+  const loadDrivers = async () => {
     try {
       setIsLoading(true);
       // TODO: replace with real API call
       await new Promise((resolve) => setTimeout(resolve, 200));
-      setVehicles(MOCK_VEHICLES);
+      setDrivers(MOCK_DRIVERS);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load vehicles.");
+      toast.error(error?.message || "Failed to load drivers.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadVehicles();
+    loadDrivers();
   }, []);
 
   // ---- responsive table height, same approach as Fleet.tsx ---------------
@@ -178,63 +200,72 @@ const VehicleRegistry = () => {
   useEffect(() => {
     setColumnsConfig([
       {
-        key: "regNumber",
-        header: "Reg. No. (Unique)",
+        key: "name",
+        header: "Driver",
         visible: true,
         locked: true,
         filterable: true,
         align: "left",
-        render: (value: string, row: Vehicle) => (
+        render: (value: string, row: Driver) => (
           <button
             type="button"
             className="text-blue-600 hover:underline bg-transparent p-0 text-left"
-            onClick={() => handleViewVehicle(row)}
+            onClick={() => handleViewDriver(row)}
           >
             {value}
           </button>
         ),
       },
       {
-        key: "nameOrMode",
-        header: "Name / Model",
+        key: "licenseNo",
+        header: "License No.",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
       },
       {
-        key: "type",
-        header: "Type",
+        key: "category",
+        header: "Category",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
       },
       {
-        key: "capacity",
-        header: "Capacity",
+        key: "licenseExpiry",
+        header: "Expiry",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: string) => <ExpiryCell expiry={value} />,
+      },
+      {
+        key: "contact",
+        header: "Contact",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
       },
       {
-        key: "odometer",
-        header: "Odometer",
+        key: "tripCompletionRate",
+        header: "Trip Compl.",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
-        render: (value: number) => formatOdometer(value),
+        render: (value: number) => formatTripCompletion(value),
       },
       {
-        key: "acquisitionCost",
-        header: "Acq. Cost",
+        key: "safety",
+        header: "Safety",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
-        render: (value: number) => formatCurrency(value),
+        render: (value: DriverStatus) => <StatusBadge status={value} />,
       },
       {
         key: "status",
@@ -243,9 +274,7 @@ const VehicleRegistry = () => {
         locked: false,
         filterable: true,
         align: "left",
-        render: (value: VehicleStatus) => (
-          <StatusBadge status={value} />
-        ),
+        render: (value: DriverStatus) => <StatusBadge status={value} />,
       },
     ]);
   }, []);
@@ -253,70 +282,73 @@ const VehicleRegistry = () => {
   const visibleColumns = columnsConfig.filter((column) => column.visible);
 
   // ==========================================================================
-  // FILTERING (type dropdown + status dropdown + reg. no. search)
+  // FILTERING (category dropdown + status dropdown + driver/license search)
   // ==========================================================================
   const filteredData = useMemo(() => {
-    return vehicles.filter((vehicle) => {
-      const matchesType = typeFilter === "All" || vehicle.type === typeFilter;
+    return drivers.filter((driver) => {
+      const matchesCategory =
+        categoryFilter === "All" || driver.category === categoryFilter;
       const matchesStatus =
-        statusFilter === "All" || vehicle.status === statusFilter;
+        statusFilter === "All" || driver.status === statusFilter;
       const matchesSearch =
         searchTerm.trim() === "" ||
-        vehicle.regNumber.toLowerCase().includes(searchTerm.toLowerCase());
+        driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        driver.licenseNo.toLowerCase().includes(searchTerm.toLowerCase());
 
-      return matchesType && matchesStatus && matchesSearch;
+      return matchesCategory && matchesStatus && matchesSearch;
     });
-  }, [vehicles, typeFilter, statusFilter, searchTerm]);
+  }, [drivers, categoryFilter, statusFilter, searchTerm]);
 
   // ==========================================================================
   // HANDLERS — placeholders wired for backend hookup
   // ==========================================================================
-  const handleViewVehicle = (row: Vehicle) => {
-    // TODO: open a vehicle detail view / form in edit mode
-    console.log("View vehicle", row);
+  const handleViewDriver = (row: Driver) => {
+    // TODO: open a driver detail view / form in edit mode
+    console.log("View driver", row);
   };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadVehicles();
+    await loadDrivers();
     setIsRefreshing(false);
   };
 
-  const handleEditSelected = (rows: Vehicle[]) => {
+  const handleEditSelected = (rows: Driver[]) => {
     if (rows.length !== 1) {
-      toast.warning("Please select exactly one vehicle to edit.");
+      toast.warning("Please select exactly one driver to edit.");
       return;
     }
     setSelectedRows(rows);
     setIsFormOpen(true);
-    // TODO: populate form fields from rows[0], call updateVehicleService()
-    // on submit.
+    // TODO: populate form fields from rows[0], call updateDriverService()
+    // on submit. Enforce: expired license or Suspended status -> block
+    // from trip assignment (same rule shown in the reference design).
   };
 
-  const handleDeleteSelected = (rows: Vehicle[]) => {
+  const handleDeleteSelected = (rows: Driver[]) => {
     if (!rows.length) {
-      toast.warning("Please select vehicle(s) to delete.");
+      toast.warning("Please select driver(s) to delete.");
       return;
     }
-    // TODO: confirm with Swal, call deleteVehiclesService(ids), then
-    // await loadVehicles().
-    console.log("Delete vehicles", rows);
+    // TODO: confirm with Swal, call deleteDriversService(ids), then
+    // await loadDrivers().
+    console.log("Delete drivers", rows);
   };
 
   return (
     <div className="flex flex-col gap-3 h-full overflow-hidden bg-gray-100">
-      {/* Filter / Search / Add Vehicle Bar */}
+      {/* Filter / Search / Add Driver Bar */}
       <div className="flex justify-between items-center gap-4 mb-2">
         <div className="flex items-center gap-3">
-          {/* Type Filter */}
+          {/* Category Filter */}
           <div className="w-40">
             <CustomDropdown
               label=""
-              value={typeFilter}
-              placeholder="Type: All"
-              options={VEHICLE_TYPE_OPTIONS}
+              value={categoryFilter}
+              placeholder="Category: All"
+              options={DRIVER_CATEGORY_OPTIONS}
               onChange={(value) => {
-                setTypeFilter(value || "All");
+                setCategoryFilter(value || "All");
                 setCurrentPage(1);
               }}
             />
@@ -328,7 +360,7 @@ const VehicleRegistry = () => {
               label=""
               value={statusFilter}
               placeholder="Status: All"
-              options={VEHICLE_STATUS_OPTIONS}
+              options={DRIVER_STATUS_OPTIONS}
               onChange={(value) => {
                 setStatusFilter(value || "All");
                 setCurrentPage(1);
@@ -336,12 +368,12 @@ const VehicleRegistry = () => {
             />
           </div>
 
-          {/* Reg. No. Search */}
+          {/* Driver / License Search */}
           <div className="w-64">
             <SearchBar
               value={inputValue}
               loading={isLoading}
-              placeholder="Search reg. no..."
+              placeholder="Search driver / license no..."
               onChange={(val) => {
                 setInputValue(val);
                 if (val.trim() === "") {
@@ -358,8 +390,7 @@ const VehicleRegistry = () => {
         </div>
 
         <div className="flex items-center gap-3">
-
-          {/* Add Vehical */}
+          {/* Add Driver */}
           <button
             onClick={() => {
               // resetForm();
@@ -369,7 +400,7 @@ const VehicleRegistry = () => {
             className="flex items-center gap-2 p-2 bg-white border rounded-xl hover:bg-gray-100"
           >
             <Plus className="w-4 h-4" />
-            Add Vehicle
+            Add Driver
           </button>
 
           <RefreshButton loading={isRefreshing} onClick={handleRefresh} />
@@ -381,20 +412,19 @@ const VehicleRegistry = () => {
           >
             <LayoutGrid className="w-4 h-4" />
           </button>
-
         </div>
       </div>
 
       {/* Table */}
       <ReusableTable
         loading={isLoading}
-        tableId="VehicleRegistry-Table"
+        tableId="DriverRegistry-Table"
         columns={visibleColumns}
         data={filteredData}
         striped
         hoverEffect
         showSelection
-        emptyMessage="No vehicles found"
+        emptyMessage="No drivers found"
         maxHeight={tableHeight}
         pagination={true}
         currentPage={currentPage}
@@ -420,7 +450,6 @@ const VehicleRegistry = () => {
         }}
       />
 
-
       {/* Manage Columns */}
       <ManageColumns
         open={isManageOpen}
@@ -431,9 +460,8 @@ const VehicleRegistry = () => {
           setIsManageOpen(false);
         }}
       />
-
     </div>
   );
 };
 
-export default VehicleRegistry;
+export default DriverRegistry;

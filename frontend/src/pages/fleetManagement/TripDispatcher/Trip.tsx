@@ -110,7 +110,7 @@ const StatusBadge = ({ status }: { status: TripStatus }) => (
 // COMPONENT
 // ==========================================================================
 
-const VehicleRegistry = () => {
+const Trip = () => {
   // ---- data state -------------------------------------------------------
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -438,4 +438,4 @@ const VehicleRegistry = () => {
   );
 };
 
-export default VehicleRegistry;
+export default Trip;

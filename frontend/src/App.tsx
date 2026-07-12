@@ -10,6 +10,8 @@ import SystemSettingsLayout from './layout/SystemSettingsLayout'
 import Administration from './pages/configuration/administrator/Administration'
 import SMTP from './pages/configuration/smtp/SMTP'
 import VehicleRegistry from './pages/fleetManagement/Fleet/fleet'
+import DriverRegistry from './pages/fleetManagement/driverAndSafetyProfile/driver'
+import Trip from './pages/fleetManagement/TripDispatcher/Trip'
 
 function App() {
 
@@ -72,6 +74,23 @@ function App() {
             </ProtectedRoute>}
         />
 
+        <Route path="/drivers"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <DriverRegistry />
+              </MainLayout>
+            </ProtectedRoute>}
+        />
+
+        <Route path="/trips"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Trip />
+              </MainLayout>
+            </ProtectedRoute>}
+        />
 
       </Routes>
 
