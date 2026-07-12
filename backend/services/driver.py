@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import func, or_ #type: ignore
+from sqlalchemy.orm import Session #type: ignore
 
 from database.models.driver import Driver
+from database.types import now_utc
 
 from schemas.driver import (
     DriverCreate,
@@ -218,9 +219,9 @@ def create_driver(
 
         is_active=payload.is_active,
 
-        created_at=datetime.utcnow(),
+        created_at=now_utc(),
 
-        updated_at=datetime.utcnow(),
+        updated_at=now_utc(),
     )
 
     db.add(driver)
@@ -362,7 +363,7 @@ def update_driver(
             value,
         )
 
-    driver.updated_at = datetime.utcnow()
+    driver.updated_at = now_utc()
 
     db.commit()
 
