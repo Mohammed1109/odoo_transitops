@@ -86,9 +86,21 @@ if FRONTEND_DIST.exists():
 
 from routes.auth import auth_router
 # from routes.users import router as users_router
+<<<<<<< HEAD
 from routes.vehicles import vehicles_router
 from routes.drivers import drivers_router
 from routes.trips import trips_router
+=======
+<<<<<<< HEAD
+from routes.vehicles import router as vehicles_router
+from routes.drivers import router as drivers_router
+from routes.trips import router as trips_router
+=======
+from routes.vehicles import vehicles_router
+from routes.drivers import drivers_router
+# from routes.trips import router as trips_router
+>>>>>>> e4ce82a (Roles and Authentication Logic)
+>>>>>>> 3f77d83 (Roles and Authentication Logic)
 # from routes.maintenance import router as maintenance_router
 # from routes.fuel import router as fuel_router
 # from routes.expenses import router as expenses_router
