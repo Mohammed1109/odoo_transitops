@@ -7,7 +7,23 @@ import ManageColumns, { type ColumnWithState } from "../../../components/utils/M
 import { Eye, EyeOff, LayoutGrid, Plus } from "lucide-react";
 import CustomDropdown from "../../../components/utils/CustomDropdown";
 import WideReusableTable from "../../../components/utils/WideReusableTable";
+import { toast } from "sonner";
 
+// NOTE: adjust these two import paths to wherever roles.ts / users.ts actually
+// live in your project — I've guessed the same folder pattern used by
+// authHeaders.ts ("../../../ts/services/..."). Everything else assumes
+// these paths are correct.
+import {
+  fetchUsers,
+  fetchUserById,
+  createUser,
+  updateUser,
+  deleteUsers,
+  type UserResponse,
+  type UserCreatePayload,
+  type UserUpdatePayload,
+} from "../../../ts/Administration/admin/users";
+import { fetchRoles, type RoleResponse } from "../../../ts/Administration/role/Roleservice";
 
 const SecurityQuestionOptions = () => [
   {
@@ -152,6 +168,7 @@ const AdminFormFields = ({
   setShowConfirmPassword,
   editMode,
   securityQuestionOptions,
+  roleOptions,
 }: any) => {
 
   const [showPasswordHint, setShowPasswordHint] = useState(false);
@@ -186,6 +203,16 @@ const AdminFormFields = ({
   return (
     <form onSubmit={handleFormSubmit} className="space-y-4">
 
+      {/* Full Name — required by the backend User model */}
+      <input
+        type="text"
+        value={formData.fullName}
+        onChange={(e) => handleInputChange("fullName", e.target.value)}
+        placeholder="Enter Full Name"
+        className="w-full border rounded-lg p-2"
+        required
+      />
+
       {/* Username */}
       <input
         type="text"
@@ -205,6 +232,16 @@ const AdminFormFields = ({
         placeholder="Enter Email"
         className="w-full border rounded-lg p-2"
         required={!editMode}
+      />
+
+      {/* Role — fetched from roles.ts, sent to backend as role_id */}
+      <CustomDropdown
+        label="Role"
+        required
+        value={formData.roleId}
+        onChange={(v) => handleInputChange("roleId", v)}
+        options={roleOptions}
+        placeholder="Select Role"
       />
 
       <div className="grid grid-cols-2 gap-4">
@@ -296,10 +333,16 @@ const AdminFormFields = ({
         </button>
       </div>
 
+      {/*
+        Security Q&A below is kept for UX continuity, but the backend User
+        model has no columns for it yet, so it is NOT sent on submit.
+        Once there's a backend table/columns for this, wire it into
+        handleFormSubmit's payload.
+      */}
+
       {/* Security Q1 */}
       <CustomDropdown
         label="Security Question 1"
-        required={!editMode}
         value={formData.securityQ1}
         onChange={(v) => handleInputChange("securityQ1", v)}
         options={filteredSecurityQ1Options}
@@ -312,14 +355,12 @@ const AdminFormFields = ({
         onChange={(e) => handleInputChange("securityA1", e.target.value)}
         placeholder="Enter Answer 1"
         className="w-full border rounded-lg p-2"
-        required={!editMode}
 
       />
 
       {/* Security Q2 */}
       <CustomDropdown
         label="Security Question 2"
-        required={!editMode}
         value={formData.securityQ2}
         onChange={(v) => handleInputChange("securityQ2", v)}
         options={filteredSecurityQ2Options}
@@ -332,14 +373,11 @@ const AdminFormFields = ({
         onChange={(e) => handleInputChange("securityA2", e.target.value)}
         placeholder="Enter Answer 2"
         className="w-full border rounded-lg p-2"
-        required={!editMode}
 
       />
     </form >
   );
 };
-
-// type AdminFlowStep = "admin" | null;
 
 const FormLoaderOverlay = ({ loading }: { loading: boolean }) => {
   if (!loading) return null;
@@ -359,11 +397,8 @@ function RoleFormFields({
   permission,
   setPermission,
   handleRoleFormSubmit,
+  roleOptions,
 }: any) {
-  const roleOptions = [
-    { label: "Office Admin", value: "superAdmin" },
-  ];
-
   const permissionOptions = [
     { label: "Read", value: "read" },
     { label: "Write", value: "write" },
@@ -372,7 +407,7 @@ function RoleFormFields({
   return (
     <form onSubmit={handleRoleFormSubmit} className="space-y-4">
 
-      {/* ROLE */}
+      {/* ROLE — fetched from roles.ts, same list as the create/edit form */}
       <CustomDropdown
         label="Role"
         value={role}
@@ -382,13 +417,17 @@ function RoleFormFields({
         required
       />
 
+      {/*
+        Permission has no backend equivalent on the User model yet (there's
+        only a single role_id column). Kept in the UI, but not sent on
+        submit — see handleRoleFormSubmit.
+      */}
       <CustomDropdown
         label="Assign Permission"
         value={permission}
         onChange={setPermission}
         options={permissionOptions}
         placeholder="Select Permission"
-        required
       />
     </form>
   );
@@ -398,45 +437,6 @@ function RoleFormFields({
 export default function Administration() {
 
   const securityQuestionOptions = SecurityQuestionOptions();
-  // const [adminFlowStep, setAdminFlowStep] = useState<AdminFlowStep>(null);
-  // const [forceAdminCreation, setForceAdminCreation] = useState(false);
-  // const isFirstAdminFlow = forceAdminCreation === true;
-  // const [gateResolved, setGateResolved] = useState(false);
-
-  // useEffect(() => {
-  //   let mounted = true;
-
-  //   async function runAdminGate() {
-  //     if (gateResolved) return;
-
-  //     const { hasAdmin } = await getBootstrapStatus();
-
-  //     if (!mounted) return;
-
-  //     resetForm();
-  //     setEditMode(false);
-  //     setEditAdminId(null);
-
-
-  //     if (!hasAdmin) {
-  //       setForceAdminCreation(true);
-  //       setAdminFlowStep("admin");
-  //       setIsFormOpen(true);
-  //       return;
-  //     }
-
-  //     setForceAdminCreation(false);
-  //     setAdminFlowStep(null);
-  //     setGateResolved(true);
-  //   }
-
-  //   runAdminGate();
-
-  //   return () => {
-  //     mounted = false;
-  //   };
-  // }, [gateResolved]);
-
 
   /* ------------------------------------------------------
       STATE
@@ -448,38 +448,62 @@ export default function Administration() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
-  const [, setEditAdminId] = useState<number | null>(null);
-  const [isLoading, ] = useState(false);
+  const [editAdminId, setEditAdminId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [tableData, ] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<any[]>([]);
 
-  // near top of Administration()
-  const [showSelection, ] = useState<boolean>(true); // default true
-  const [tableKey, ] = useState<number>(0);
+  const [showSelection] = useState<boolean>(true); // default true
+  const [tableKey] = useState<number>(0);
 
+  /* Roles — fetched once, reused by both the Role dropdown in the
+     create/edit form and the "Manage Role" modal. */
+  const [roles, setRoles] = useState<RoleResponse[]>([]);
+  const roleOptions = roles.map((r) => ({ label: r.name, value: r.id }));
+
+  const roleNameById = (roleId: number | undefined) =>
+    roles.find((r) => r.id === roleId)?.name ?? "—";
 
   useEffect(() => {
+    loadRoles();
     loadAdmins();
   }, []);
 
+  const loadRoles = async () => {
+    const result = await fetchRoles();
+    if (result.success) {
+      setRoles(result.data);
+    }
+  };
+
   const loadAdmins = async () => {
-    
+    setIsLoading(true);
+    const result = await fetchUsers();
+    if (result.success) {
+      const rows = result.data.map((u: UserResponse) => ({
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        mobile: u.phone ?? "",
+        accountType: u.is_active ? "Active" : "Inactive",
+        role: roleNameById(u.role_id),
+        role_id: u.role_id,
+        full_name: u.full_name,
+      }));
+      setTableData(rows);
+    }
+    setIsLoading(false);
   };
 
 
-
-
   const [formData, setFormData] = useState<any>({
-    accountType: "local",
-    ssoServer: "",
-    ssoUserId: "",
-    ldapServer: "",
-    ldapGroup: "",
+    fullName: "",
     username: "",
     email: "",
+    roleId: "",
     password: "",
     confirmPassword: "",
     securityQ1: "",
@@ -505,13 +529,10 @@ export default function Administration() {
   ------------------------------------------------------ */
   const resetForm = () => {
     setFormData({
-      accountType: "local",
-      ssoServer: "",
-      ssoUserId: "",
-      ldapServer: "",
-      ldapGroup: "",
+      fullName: "",
       username: "",
       email: "",
+      roleId: "",
       password: "",
       confirmPassword: "",
       securityQ1: "",
@@ -530,8 +551,39 @@ export default function Administration() {
 
   };
 
-  const handleEditSelected = async () => {
-    
+  /* ------------------------------------------------------
+      EDIT HANDLER
+      NOTE: assumes ReusableTable's onEditSelected passes an array of
+      selected row ids, matching onDeleteSelected below. Adjust if your
+      ReusableTable actually passes full row objects instead.
+  ------------------------------------------------------ */
+  const handleEditSelected = async (ids: (string | number)[]) => {
+    if (!ids || ids.length === 0) return;
+
+    const userId = Number(ids[0]);
+    const result = await fetchUserById(userId);
+
+    if (!result.success) return;
+
+    const u = result.data;
+    setFormData({
+      fullName: u.full_name,
+      username: u.username,
+      email: u.email,
+      roleId: u.role_id,
+      password: "",
+      confirmPassword: "",
+      securityQ1: "",
+      securityA1: "",
+      securityQ2: "",
+      securityA2: "",
+      countryCode: "",
+      mobileNumber: u.phone ?? "",
+    });
+
+    setEditMode(true);
+    setEditAdminId(u.id);
+    setIsFormOpen(true);
   };
 
   /* ------------------------------------------------------
@@ -545,7 +597,59 @@ export default function Administration() {
   /* ------------------------------------------------------
      SUBMIT (ADD + EDIT)
   ------------------------------------------------------ */
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
+
+    if (!formData.roleId) {
+      toast.error("Please select a role");
+      return;
+    }
+
+    if (!editMode && formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    if (editMode && editAdminId) {
+      const payload: UserUpdatePayload = {
+        full_name: formData.fullName,
+        username: formData.username,
+        email: formData.email,
+        phone: formData.mobileNumber,
+        role_id: Number(formData.roleId),
+      };
+
+      if (formData.password) {
+        payload.password = formData.password;
+      }
+
+      const result = await updateUser(editAdminId, payload);
+      if (result.success) {
+        resetForm();
+        setIsFormOpen(false);
+        await loadAdmins();
+      }
+    } else {
+      const payload: UserCreatePayload = {
+        full_name: formData.fullName,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.mobileNumber,
+        role_id: Number(formData.roleId),
+      };
+
+      const result = await createUser(payload);
+      if (result.success) {
+        resetForm();
+        setIsFormOpen(false);
+        await loadAdmins();
+      }
+    }
+
+    setIsLoading(false);
   };
 
   /* ------------------------------------------------------
@@ -572,6 +676,7 @@ export default function Administration() {
             type="button"
             onClick={() => {
               setSelectedRoleUser(row);
+              setRole(row.role_id ?? "");
               setIsRoleFormOpen(true);
             }}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium 
@@ -580,7 +685,7 @@ export default function Administration() {
             hover:text-blue-800 transition-all duration-200"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Role</span>
+            <span>{row.role || "Role"}</span>
           </button>
         ),
       },
@@ -626,7 +731,7 @@ export default function Administration() {
       },
 
     ]);
-  }, []);
+  }, [roles]);
 
 
   /* computed visible columns */
@@ -665,9 +770,15 @@ export default function Administration() {
 
   /* ------------------------------------------------------
       DELETE HANDLER
+      NOTE: same assumption as handleEditSelected — ids array from
+      ReusableTable's onDeleteSelected, matching the deleteRoles pattern.
   ------------------------------------------------------ */
-  const handleDeleteSelected = async () => {
-    
+  const handleDeleteSelected = async (ids: (string | number)[]) => {
+    if (!ids || ids.length === 0) return;
+    const result = await deleteUsers(ids);
+    if (result.success) {
+      await loadAdmins();
+    }
   };
 
 
@@ -679,7 +790,7 @@ export default function Administration() {
   const [isRoleFormOpen, setIsRoleFormOpen] = useState(false);
   const [selectedRoleUser, setSelectedRoleUser] = useState<any>(null);
 
-  const [role, setRole] = useState<string>("");
+  const [role, setRole] = useState<string | number>("");
   const [permission, setPermission] = useState("");
 
   // Reset Role Form
@@ -688,8 +799,26 @@ export default function Administration() {
     setPermission("");
   };
 
-  const handleRoleFormSubmit = async () => {
-    
+  /*
+    Persists the role change via updateUser (role_id). Permission has no
+    backend column yet, so it isn't sent — see the note on RoleFormFields.
+  */
+  const handleRoleFormSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
+
+    if (!selectedRoleUser || !role) return;
+
+    setIsLoading(true);
+    const result = await updateUser(selectedRoleUser.id, {
+      role_id: Number(role),
+    });
+
+    if (result.success) {
+      setIsRoleFormOpen(false);
+      resetRoleForm();
+      await loadAdmins();
+    }
+    setIsLoading(false);
   };
 
 
@@ -700,9 +829,8 @@ export default function Administration() {
     email: string;
     accountType: string;
     mobile?: string;
-    ldapServer?: string;
-    ldapGroup?: string;
     role?: string;
+    role_id?: number;
     permission?: string;
   }
 
@@ -724,58 +852,22 @@ export default function Administration() {
 
 
   // FETCHED FROM API (no dummy)
-  const [permissionData, ] = useState<any[]>([]);
-
-  // ===================== FETCH ROLE PERMISSIONS =====================
-  // async function loadUserPermissions() {
- 
-  // }
+  const [permissionData] = useState<any[]>([]);
 
   // ===================== OPEN PERMISSION MODAL =====================
   const openPermissionModal = async (user: any) => {
     setSelectedPermissionUser(user);
     setIsPermissionOpen(true);
-
-    //  Load permissions from API
-    // loadUserPermissions(user.id);
   };
 
   const handleEditPermission = () => {
-    // const assignmentId = Number(ids[0]);
-
-    // // 2. BLOCK editing for Software Admin role
-    // const selectedRow = permissionData.find((row) => row.id === assignmentId);
-    // if (selectedRow?.Role === "Software Admin") {
-    //   toast.error("Principal role cannot be edited");
-    //   return;
-    // }
-
-    // // CLOSE PERMISSION MODAL
-    // setIsPermissionOpen(false);
-    // if (!selectedPermissionUser) {
-    //   toast.error("No user selected");
-    //   return;
-    // }
-
-    // const userId = selectedPermissionUser.id;
-
-    // loadRoleAssignmentForEdit(
-    //   assignmentId,
-    //   userId,
-    //   setIsRoleFormOpen,
-    //   setSelectedRoleUser,
-    //   setRole,
-    //   setPermission,
-    // );
+    // No backend endpoint for permission yet — see notes above.
   };
 
   // permission delete
   const handleDeletePermission = async () => {
-    // 
+    // No backend endpoint for permission yet — see notes above.
   };
-  // ------------------------------------------------------
-  // ROOT USER PASSWORD UPDATED 
-  // ------------------------------------------------------
 
   let adminFormTitle = "Add Administrator";
 
@@ -819,7 +911,6 @@ export default function Administration() {
           <button
             onClick={() => {
               resetForm();
-              // setAdminFlowStep("admin"); // REQUIRED
               setIsFormOpen(true);
             }}
             className="flex items-center gap-2 p-2 bg-white border rounded-xl hover:bg-gray-100"
@@ -847,7 +938,7 @@ export default function Administration() {
           tableId="AdministrationMain-Table"
           key={tableKey}                    // forces remount when bumped
           columns={visibleColumns}
-          data={filteredData}   // ⬅ FIXED HERE
+          data={filteredData}
           striped
           hoverEffect
           showSelection={showSelection}     // controlled visibility
@@ -870,7 +961,6 @@ export default function Administration() {
           title={adminFormTitle}
 
           onClose={() => {
-            // if (forceAdminCreation) return;
             resetForm();
             setIsFormOpen(false);
           }}
@@ -891,8 +981,8 @@ export default function Administration() {
               showConfirmPassword={showConfirmPassword}
               setShowConfirmPassword={setShowConfirmPassword}
               editMode={editMode}
-              // forceAdminCreation={forceAdminCreation}
               securityQuestionOptions={securityQuestionOptions}
+              roleOptions={roleOptions}
             />
           </div>
         </FormLayout>
@@ -919,6 +1009,7 @@ export default function Administration() {
               permission={permission}
               setPermission={setPermission}
               handleRoleFormSubmit={handleRoleFormSubmit}
+              roleOptions={roleOptions}
             />
           </div>
         </FormLayout>

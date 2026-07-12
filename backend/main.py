@@ -92,13 +92,14 @@ from routes.drivers import drivers_router
 from routes.trips import trips_router
 from routes.maintenance import maintenance_router
 from routes.role import role_router
+from routes.users import router as users_router
 # from routes.fuel import router as fuel_router
 # from routes.expenses import router as expenses_router
 # from routes.dashboard import router as dashboard_router
 # from routes.reports import router as reports_router
 
 app.include_router(auth_router, prefix="/api", tags=["Authentication"])
-# app.include_router(users_router, prefix="/api/users", tags=["Users"])
+app.include_router(users_router, prefix="/api", tags=["Users"])
 app.include_router(vehicles_router, prefix="/api", tags=["Vehicles"])
 app.include_router(drivers_router, prefix="/api", tags=["Drivers"])
 app.include_router(trips_router, prefix="/api", tags=["Trips"])
