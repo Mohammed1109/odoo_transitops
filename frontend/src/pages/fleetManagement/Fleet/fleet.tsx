@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import type { ColumnWithState } from "../../../components/utils/ManageColumns";
 import ManageColumns from "../../../components/utils/ManageColumns";
 import FormLayout from "../../../components/utils/FormLayout";
+import { createVehicle } from "../../../ts/FleetManagement/vehicle/createVehicle";
 
 export type VehicleType = "Van" | "Truck" | "Mini";
 
@@ -1306,8 +1307,102 @@ const VehicleRegistry = () => {
   };
 
   const handleFormSubmit = async () => {
+    try {
+      // ===========================
+      // Basic Validation
+      // ===========================
+      if (!registrationNumber.trim()) {
+        toast.error("Registration Number is required.");
+        return;
+      }
 
-  }
+      if (!vehicleName.trim()) {
+        toast.error("Vehicle Name is required.");
+        return;
+      }
+
+      if (!vehicleType.trim()) {
+        toast.error("Vehicle Type is required.");
+        return;
+      }
+
+      if (!maximumLoadCapacity.trim()) {
+        toast.error("Maximum Load Capacity is required.");
+        return;
+      }
+
+      const response = await createVehicle({
+        registration_number: registrationNumber.trim(),
+
+        vehicle_name: vehicleName.trim(),
+        vehicle_model: vehicleModel.trim(),
+        manufacturer: manufacturer.trim(),
+        vehicle_type: vehicleType,
+
+        maximum_load_capacity: Number(maximumLoadCapacity),
+        capacity_unit: capacityUnit,
+
+        odometer: odometer ? Number(odometer) : undefined,
+        acquisition_cost: acquisitionCost
+          ? Number(acquisitionCost)
+          : undefined,
+
+        purchase_date: purchaseDate || undefined,
+
+        color: color.trim(),
+
+        chassis_number: chassisNumber.trim(),
+        engine_number: engineNumber.trim(),
+        vin_number: vinNumber.trim(),
+
+        fuel_type: fuelType.trim(),
+
+        fuel_tank_capacity: fuelTankCapacity
+          ? Number(fuelTankCapacity)
+          : undefined,
+
+        gps_tracker_id: gpsTrackerId.trim(),
+
+        current_latitude: currentLatitude
+          ? Number(currentLatitude)
+          : undefined,
+
+        current_longitude: currentLongitude
+          ? Number(currentLongitude)
+          : undefined,
+
+        insurance_number: insuranceNumber.trim(),
+
+        insurance_expiry: insuranceExpiry || undefined,
+
+        registration_expiry: registrationExpiry || undefined,
+
+        permit_expiry: permitExpiry || undefined,
+
+        status,
+        is_active: isActive,
+      });
+
+      if (!response.success) {
+        toast.error(response.message);
+        return;
+      }
+
+      toast.success(response.message);
+
+      // Refresh table
+      await loadVehicles();
+
+      // Reset form
+      resetForm();
+
+      // Close dialog
+      setIsFormOpen(false);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to create vehicle.");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3 h-full overflow-hidden bg-gray-100">
       {/* Filter / Search / Add Vehicle Bar */}
