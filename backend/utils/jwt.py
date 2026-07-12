@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 
-from backend.database.types import now_utc
+from database.types import now_utc
 from dotenv import load_dotenv  # type: ignore
 from jose import JWTError, jwt  # type: ignore
 
