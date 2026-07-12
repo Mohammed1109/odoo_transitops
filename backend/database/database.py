@@ -1,7 +1,9 @@
 import os
 
-from dotenv import load_dotenv 
-from sqlalchemy import create_engine  # type: ignore
+from dotenv import load_dotenv  # type: ignore
+
+from sqlalchemy import create_engine, text  # type: ignore
+from sqlalchemy.engine import URL  # type: ignore
 from sqlalchemy.orm import declarative_base, sessionmaker  # type: ignore
 
 # ----------------------------------------------------
@@ -38,11 +40,13 @@ def build_database_url():
             "Please check your .env file."
         )
 
-    return (
-        f"postgresql+psycopg2://"
-        f"{username}:{password}@"
-        f"{host}:{port}/"
-        f"{database}"
+    return URL.create(
+        drivername="postgresql+psycopg2",
+        username=username,
+        password=password,
+        host=host,
+        port=int(port),
+        database=database,
     )
 
 
@@ -65,6 +69,16 @@ def init_db():
         max_overflow=20,
         pool_pre_ping=True,
     )
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+
+        print("Connected to PostgreSQL successfully.")
+
+    except Exception as e:
+        raise RuntimeError(
+            f"Unable to connect to PostgreSQL.\n{e}"
+        )
 
     SessionLocal = sessionmaker(
         bind=engine,
