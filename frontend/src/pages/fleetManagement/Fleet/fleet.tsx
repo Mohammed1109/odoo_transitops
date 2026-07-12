@@ -3,15 +3,10 @@ import SearchBar from "../../../components/utils/SearchBar";
 import RefreshButton from "../../../components/utils/RefreshButton";
 import ReusableTable from "../../../components/utils/ReusableTable";
 import CustomDropdown from "../../../components/utils/CustomDropdown";
-import { Plus } from "lucide-react";
+import { LayoutGrid, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { ColumnWithState } from "../../../components/utils/ManageColumns";
-
-// ==========================================================================
-// TYPES
-// Swap these for your real API/DB shapes whenever the backend is wired up.
-// Keep the field names below in sync with whatever the API returns.
-// ==========================================================================
+import ManageColumns from "../../../components/utils/ManageColumns";
 
 export type VehicleType = "Van" | "Truck" | "Mini";
 
@@ -122,6 +117,7 @@ const VehicleRegistry = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
 
   // ---- filter / search state ---------------------------------------------
   const [typeFilter, setTypeFilter] = useState<string>("All");
@@ -133,19 +129,13 @@ const VehicleRegistry = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [tableHeight, setTableHeight] = useState("350px");
-  const [ ,setSelectedRows] = useState<Vehicle[]>([]);
+  const [, setSelectedRows] = useState<Vehicle[]>([]);
 
   // form state left as a placeholder — wire up a FormLayout + fields the
   // same way StudentFormFields is used in Fleet.tsx once you have the
   // vehicle create/edit form ready.
-  const [ ,setIsFormOpen] = useState(false);
+  const [, setIsFormOpen] = useState(false);
 
-  // ==========================================================================
-  // LOAD DATA
-  // Replace body with your real fetch call, e.g.:
-  //   const response = await getVehiclesService();
-  //   setVehicles(response.data);
-  // ==========================================================================
   const loadVehicles = async () => {
     try {
       setIsLoading(true);
@@ -185,80 +175,80 @@ const VehicleRegistry = () => {
   // ==========================================================================
   const [columnsConfig, setColumnsConfig] = useState<ColumnWithState[]>([]);
 
-useEffect(() => {
-  setColumnsConfig([
-    {
-      key: "regNumber",
-      header: "Reg. No. (Unique)",
-      visible: true,
-      locked: true,
-      filterable: true,
-      align: "left",
-      render: (value: string, row: Vehicle) => (
-        <button
-          type="button"
-          className="text-blue-600 hover:underline bg-transparent p-0 text-left"
-          onClick={() => handleViewVehicle(row)}
-        >
-          {value}
-        </button>
-      ),
-    },
-    {
-      key: "nameOrMode",
-      header: "Name / Model",
-      visible: true,
-      locked: false,
-      filterable: true,
-      align: "left",
-    },
-    {
-      key: "type",
-      header: "Type",
-      visible: true,
-      locked: false,
-      filterable: true,
-      align: "left",
-    },
-    {
-      key: "capacity",
-      header: "Capacity",
-      visible: true,
-      locked: false,
-      filterable: true,
-      align: "left",
-    },
-    {
-      key: "odometer",
-      header: "Odometer",
-      visible: true,
-      locked: false,
-      filterable: true,
-      align: "left",
-      render: (value: number) => formatOdometer(value),
-    },
-    {
-      key: "acquisitionCost",
-      header: "Acq. Cost",
-      visible: true,
-      locked: false,
-      filterable: true,
-      align: "left",
-      render: (value: number) => formatCurrency(value),
-    },
-    {
-      key: "status",
-      header: "Status",
-      visible: true,
-      locked: false,
-      filterable: true,
-      align: "left",
-      render: (value: VehicleStatus) => (
-        <StatusBadge status={value} />
-      ),
-    },
-  ]);
-}, []);
+  useEffect(() => {
+    setColumnsConfig([
+      {
+        key: "regNumber",
+        header: "Reg. No. (Unique)",
+        visible: true,
+        locked: true,
+        filterable: true,
+        align: "left",
+        render: (value: string, row: Vehicle) => (
+          <button
+            type="button"
+            className="text-blue-600 hover:underline bg-transparent p-0 text-left"
+            onClick={() => handleViewVehicle(row)}
+          >
+            {value}
+          </button>
+        ),
+      },
+      {
+        key: "nameOrMode",
+        header: "Name / Model",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+      },
+      {
+        key: "type",
+        header: "Type",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+      },
+      {
+        key: "capacity",
+        header: "Capacity",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+      },
+      {
+        key: "odometer",
+        header: "Odometer",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: number) => formatOdometer(value),
+      },
+      {
+        key: "acquisitionCost",
+        header: "Acq. Cost",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: number) => formatCurrency(value),
+      },
+      {
+        key: "status",
+        header: "Status",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: VehicleStatus) => (
+          <StatusBadge status={value} />
+        ),
+      },
+    ]);
+  }, []);
 
   const visibleColumns = columnsConfig.filter((column) => column.visible);
 
@@ -290,14 +280,6 @@ useEffect(() => {
     setIsRefreshing(true);
     await loadVehicles();
     setIsRefreshing(false);
-  };
-
-  const handleAddVehicle = () => {
-    setSelectedRows([]);
-    setIsFormOpen(true);
-    // TODO: open FormLayout with a VehicleFormFields component the same way
-    // Fleet.tsx opens StudentFormFields, then call a createVehicleService()
-    // on submit.
   };
 
   const handleEditSelected = (rows: Vehicle[]) => {
@@ -376,20 +358,30 @@ useEffect(() => {
         </div>
 
         <div className="flex items-center gap-3">
-          <RefreshButton
-            loading={isRefreshing}
-            onClick={handleRefresh}
-            skeleton={isLoading}
-          />
 
+          {/* Add Vehical */}
           <button
-            type="button"
-            onClick={handleAddVehicle}
-            className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-700"
+            onClick={() => {
+              // resetForm();
+              // setAdminFlowStep("admin"); // REQUIRED
+              setIsFormOpen(true);
+            }}
+            className="flex items-center gap-2 p-2 bg-white border rounded-xl hover:bg-gray-100"
           >
-            <Plus size={18} />
+            <Plus className="w-4 h-4" />
             Add Vehicle
           </button>
+
+          <RefreshButton loading={isRefreshing} onClick={handleRefresh} />
+
+          {/* Manage Columns */}
+          <button
+            className="p-2 bg-white border rounded-lg hover:bg-gray-100"
+            onClick={() => setIsManageOpen(true)}
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+
         </div>
       </div>
 
@@ -428,14 +420,17 @@ useEffect(() => {
         }}
       />
 
-      {/* Footer rule note, matches the reference screenshot */}
-      <p className="text-xs text-amber-600">
-        Rule: Registration No. must be unique • Retired/In Shop vehicles are
-        hidden from Trip Dispatcher
-      </p>
+      {/* Manage Columns */}
+      <ManageColumns
+        open={isManageOpen}
+        onClose={() => setIsManageOpen(false)}
+        columns={columnsConfig}
+        onSave={(updated) => {
+          setColumnsConfig(updated);
+          setIsManageOpen(false);
+        }}
+      />
 
-      {/* TODO: mount your Add/Edit Vehicle FormLayout here when isFormOpen
-          is true, mirroring how Fleet.tsx mounts StudentFormFields. */}
     </div>
   );
 };
