@@ -73,7 +73,7 @@ if FRONTEND_DIST.exists():
 
 # from routes.auth import router as auth_router
 # from routes.users import router as users_router
-# from routes.vehicles import router as vehicles_router
+from routes.vehicles import router as vehicles_router
 # from routes.drivers import router as drivers_router
 # from routes.trips import router as trips_router
 # from routes.maintenance import router as maintenance_router
@@ -84,7 +84,7 @@ if FRONTEND_DIST.exists():
 
 # app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 # app.include_router(users_router, prefix="/api/users", tags=["Users"])
-# app.include_router(vehicles_router, prefix="/api/vehicles", tags=["Vehicles"])
+app.include_router(vehicles_router, prefix="/api/vehicles", tags=["Vehicles"])
 # app.include_router(drivers_router, prefix="/api/drivers", tags=["Drivers"])
 # app.include_router(trips_router, prefix="/api/trips", tags=["Trips"])
 # app.include_router(maintenance_router, prefix="/api/maintenance", tags=["Maintenance"])
