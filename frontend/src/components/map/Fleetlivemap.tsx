@@ -1,19 +1,3 @@
-"use client";
-
-/**
- * Live Fleet Map — real India map powered by Leaflet + OpenStreetMap tiles.
- *
- * Setup required in your project:
- *   npm install leaflet react-leaflet
- *
- * Next.js note: Leaflet touches `window` on import, so this component must
- * only render on the client. If you're on the App Router this file's
- * "use client" directive is enough. If you're on the Pages Router, import
- * it with next/dynamic instead:
- *
- *   const FleetLiveMap = dynamic(() => import("./FleetLiveMap"), { ssr: false });
- */
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, Tooltip, CircleMarker, ZoomControl } from "react-leaflet";
 import L from "leaflet";

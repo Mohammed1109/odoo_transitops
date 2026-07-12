@@ -7,6 +7,11 @@ from sqlalchemy.orm import Session
 from database.models.trip import Trip
 from database.models.vehicle import Vehicle
 from database.models.driver import Driver
+from constants.status import (
+    VehicleStatus,
+    DriverStatus,
+    TripStatus,
+)
 
 from schemas.trip import (
     TripCreate,
@@ -15,6 +20,7 @@ from schemas.trip import (
     TripComplete,
     TripCancel,
 )
+AVERAGE_SPEED_KMH = 40
 
 # ==========================================================
 # Get Trip
@@ -102,14 +108,29 @@ def _get_driver_or_404(
 # Generate Trip Number
 # ==========================================================
 
+# ==========================================================
+# Generate Trip Number
+# ==========================================================
+
 def _generate_trip_number(
     db: Session,
 ):
 
-    total = db.query(func.count(Trip.id)).scalar() or 0
+    last_trip = (
+        db.query(Trip)
+        .order_by(Trip.id.desc())
+        .first()
+    )
 
-    return f"TR{total + 1:06d}"
+    if last_trip is None:
 
+        next_number = 1
+
+    else:
+
+        next_number = last_trip.id + 1
+
+    return f"TR{next_number:06d}"
 # ==========================================================
 # Create Trip
 # ==========================================================
@@ -123,11 +144,72 @@ def create_trip(
         db,
         payload.vehicle_id,
     )
+    # ==========================================================
+    # Vehicle Validation
+    # ==========================================================
+
+    if vehicle.status != VehicleStatus.AVAILABLE:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Selected vehicle is not available.",
+        )
+
+    if not vehicle.is_active:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Vehicle is inactive.",
+        )
 
     driver = _get_driver_or_404(
         db,
         payload.driver_id,
     )
+    # ==========================================================
+    # Driver Validation
+    # ==========================================================
+
+    if driver.status != DriverStatus.AVAILABLE:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Selected driver is not available.",
+        )
+
+    if not driver.is_active:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Driver is inactive.",
+        )
+        # ==========================================================
+    # License Validation
+    # ==========================================================
+
+    if (
+        driver.license_expiry_date is None
+        or driver.license_expiry_date < date.today()
+    ):
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Driver license is expired or not configured.",
+        )
+        # ==========================================================
+    # Cargo Validation
+    # ==========================================================
+
+    if payload.cargo_weight > vehicle.maximum_load_capacity:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Cargo weight ({payload.cargo_weight} {payload.cargo_unit}) "
+                f"exceeds vehicle capacity "
+                f"({vehicle.maximum_load_capacity} {vehicle.capacity_unit})."
+            ),
+        )
 
     trip = Trip(
 
@@ -213,11 +295,22 @@ def create_trip(
 
     )
 
-    db.add(trip)
+    try:
 
-    db.commit()
+        db.add(trip)
 
-    db.refresh(trip)
+        db.commit()
+
+        db.refresh(trip)
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unable to create trip. {str(e)}",
+        )
 
     return {
 
@@ -343,7 +436,7 @@ def update_trip(
     # Only Draft Trips Can Be Updated
     # ---------------------------------------
 
-    if trip.status != "Draft":
+    if trip.status != TripStatus.DRAFT:
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -386,19 +479,20 @@ def update_trip(
 
     trip.updated_at = datetime.utcnow()
 
-    db.commit()
+    try:
 
-    db.refresh(trip)
+        db.commit()
 
-    return {
+        db.refresh(trip)
 
-        "success": True,
+    except Exception as e:
 
-        "message": "Trip updated successfully.",
+        db.rollback()
 
-        "data": trip,
-
-    }
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to update trip. {str(e)}",
+        )
 
 
 # ==========================================================
@@ -419,7 +513,7 @@ def delete_trip(
     # Only Draft Trips Can Be Deleted
     # ---------------------------------------
 
-    if trip.status != "Draft":
+    if trip.status != TripStatus.DRAFT:
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -430,15 +524,18 @@ def delete_trip(
 
     trip.updated_at = datetime.utcnow()
 
-    db.commit()
+    try:
 
-    return {
+        db.commit()
 
-        "success": True,
+    except Exception as e:
 
-        "message": "Trip deleted successfully.",
+        db.rollback()
 
-    }
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to delete trip. {str(e)}",
+        )
 # ==========================================================
 # Dispatch Trip
 # ==========================================================
@@ -462,7 +559,7 @@ def dispatch_trip(
     # Only Draft Trip Can Be Dispatched
     # ---------------------------------------
 
-    if trip.status != "Draft":
+    if trip.status != TripStatus.DRAFT:
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -477,6 +574,27 @@ def dispatch_trip(
         db=db,
         vehicle_id=trip.vehicle_id,
     )
+    # ==========================================================
+    # Check Vehicle Already Assigned
+    # ==========================================================
+
+    existing_vehicle_trip = (
+        db.query(Trip)
+        .filter(
+            Trip.vehicle_id == vehicle.id,
+            Trip.status == "Dispatched",
+            Trip.id != trip.id,
+            Trip.is_active == True,
+        )
+        .first()
+    )
+
+    if existing_vehicle_trip:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Vehicle is already assigned to another active trip.",
+        )
 
     # ---------------------------------------
     # Get Driver
@@ -486,6 +604,28 @@ def dispatch_trip(
         db=db,
         driver_id=trip.driver_id,
     )
+
+    # ==========================================================
+    # Check Driver Already Assigned
+    # ==========================================================
+
+    existing_driver_trip = (
+        db.query(Trip)
+        .filter(
+            Trip.driver_id == driver.id,
+            Trip.status == "Dispatched",
+            Trip.id != trip.id,
+            Trip.is_active == True,
+        )
+        .first()
+    )
+
+    if existing_driver_trip:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Driver is already assigned to another active trip.",
+        )
 
     # ==========================================================
     # Vehicle Validation
@@ -498,28 +638,28 @@ def dispatch_trip(
             detail="Vehicle is inactive.",
         )
 
-    if vehicle.status == "On Trip":
+    if vehicle.status == VehicleStatus.ON_TRIP:
 
         raise HTTPException(
             status_code=400,
             detail="Vehicle is already assigned to another trip.",
         )
 
-    if vehicle.status == "In Shop":
+    if vehicle.status == VehicleStatus.IN_SHOP:
 
         raise HTTPException(
             status_code=400,
             detail="Vehicle is currently under maintenance.",
         )
 
-    if vehicle.status == "Retired":
+    if vehicle.status == VehicleStatus.RETIRED:
 
         raise HTTPException(
             status_code=400,
             detail="Vehicle has been retired.",
         )
 
-    if vehicle.status != "Available":
+    if vehicle.status != VehicleStatus.AVAILABLE:
 
         raise HTTPException(
             status_code=400,
@@ -537,28 +677,28 @@ def dispatch_trip(
             detail="Driver is inactive.",
         )
 
-    if driver.status == "On Trip":
+    if driver.status == DriverStatus.ON_TRIP:
 
         raise HTTPException(
             status_code=400,
             detail="Driver is already assigned to another trip.",
         )
 
-    if driver.status == "Off Duty":
+    if driver.status == DriverStatus.OFF_DUTY:
 
         raise HTTPException(
             status_code=400,
             detail="Driver is currently off duty.",
         )
 
-    if driver.status == "Suspended":
+    if driver.status == DriverStatus.SUSPENDED:
 
         raise HTTPException(
             status_code=400,
             detail="Driver is suspended.",
         )
 
-    if driver.status != "Available":
+    if driver.status != DriverStatus.AVAILABLE:
 
         raise HTTPException(
             status_code=400,
@@ -569,13 +709,16 @@ def dispatch_trip(
     # License Validation
     # ==========================================================
 
-    if driver.license_expiry_date < date.today():
+    
+    if (
+        driver.license_expiry_date is None
+        or driver.license_expiry_date < date.today()
+    ):
 
         raise HTTPException(
-            status_code=400,
-            detail="Driver's license has expired.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Driver license is expired or not configured.",
         )
-
     # ==========================================================
     # Cargo Capacity Validation
     # ==========================================================
@@ -594,7 +737,7 @@ def dispatch_trip(
     # Dispatch Trip
     # ==========================================================
 
-    trip.status = "Dispatched"
+    trip.status = TripStatus.DISPATCHED
 
     trip.dispatch_time = datetime.utcnow()
 
@@ -602,11 +745,36 @@ def dispatch_trip(
 
     trip.updated_at = datetime.utcnow()
 
+    # ---------------------------------------
+    # Capture Current Vehicle Odometer
+    # ---------------------------------------
+
+    trip.start_odometer = vehicle.odometer
+
+    # ---------------------------------------
+    # Capture Current Vehicle GPS
+    # ---------------------------------------
+    if (
+    vehicle.current_latitude is None
+    or vehicle.current_longitude is None
+    ):
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Vehicle GPS location is unavailable.",
+        )
+
+    trip.start_latitude = vehicle.current_latitude
+
+    trip.start_longitude = vehicle.current_longitude
+
+    trip.updated_at = datetime.utcnow()
+
     # ==========================================================
     # Update Vehicle
     # ==========================================================
 
-    vehicle.status = "On Trip"
+    vehicle.status = VehicleStatus.ON_TRIP
 
     vehicle.updated_at = datetime.utcnow()
 
@@ -614,7 +782,7 @@ def dispatch_trip(
     # Update Driver
     # ==========================================================
 
-    driver.status = "On Trip"
+    driver.status = DriverStatus.ON_TRIP
 
     driver.current_vehicle_id = vehicle.id
 
@@ -698,7 +866,7 @@ def complete_trip(
     # Trip Validation
     # ---------------------------------------
 
-    if trip.status != "Dispatched":
+    if trip.status != TripStatus.DISPATCHED:
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -755,7 +923,7 @@ def complete_trip(
         # Trip
         # =====================================================
 
-        trip.status = "Completed"
+        trip.status = TripStatus.COMPLETED
 
         trip.completion_time = datetime.utcnow()
 
@@ -785,7 +953,7 @@ def complete_trip(
         # Vehicle
         # =====================================================
 
-        vehicle.status = "Available"
+        vehicle.status = VehicleStatus.AVAILABLE
 
         vehicle.odometer = payload.end_odometer
 
@@ -795,7 +963,7 @@ def complete_trip(
         # Driver
         # =====================================================
 
-        driver.status = "Available"
+        driver.status = DriverStatus.AVAILABLE
 
         driver.current_vehicle_id = None
 
@@ -804,8 +972,8 @@ def complete_trip(
         driver.total_distance_km += payload.actual_distance_km
 
         driver.total_driving_hours += (
-            payload.actual_distance_km / 40
-        )
+    payload.actual_distance_km / AVERAGE_SPEED_KMH
+)
 
         driver.updated_at = datetime.utcnow()
 
@@ -892,7 +1060,7 @@ def cancel_trip(
         trip_id=trip_id,
     )
 
-    if trip.status == "Completed":
+    if trip.status == TripStatus.COMPLETED:
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -911,7 +1079,7 @@ def cancel_trip(
 
     try:
 
-        trip.status = "Cancelled"
+        trip.status = TripStatus.CANCELLED
 
         trip.cancellation_reason = payload.cancellation_reason
 
@@ -919,13 +1087,13 @@ def cancel_trip(
 
         # Restore Vehicle
 
-        vehicle.status = "Available"
+        vehicle.status = VehicleStatus.AVAILABLE
 
         vehicle.updated_at = datetime.utcnow()
 
         # Restore Driver
 
-        driver.status = "Available"
+        driver.status = DriverStatus.AVAILABLE
 
         driver.current_vehicle_id = None
 
@@ -967,7 +1135,7 @@ def get_draft_trips(
         db.query(Trip)
         .filter(
             Trip.is_active == True,
-            Trip.status == "Draft",
+            Trip.status == TripStatus.DRAFT,
         )
         .order_by(
             Trip.created_at.desc()
@@ -998,7 +1166,7 @@ def get_live_trips(
         db.query(Trip)
         .filter(
             Trip.is_active == True,
-            Trip.status == "Dispatched",
+            Trip.status == TripStatus.DISPATCHED,
         )
         .order_by(
             Trip.dispatch_time.desc()
@@ -1037,7 +1205,7 @@ def trip_statistics(
         db.query(func.count(Trip.id))
         .filter(
             Trip.is_active == True,
-            Trip.status == "Draft",
+            Trip.status == TripStatus.DRAFT,
         )
         .scalar()
     )
@@ -1046,7 +1214,7 @@ def trip_statistics(
         db.query(func.count(Trip.id))
         .filter(
             Trip.is_active == True,
-            Trip.status == "Dispatched",
+            Trip.status == TripStatus.DISPATCHED,
         )
         .scalar()
     )
@@ -1055,7 +1223,7 @@ def trip_statistics(
         db.query(func.count(Trip.id))
         .filter(
             Trip.is_active == True,
-            Trip.status == "Completed",
+            Trip.status == TripStatus.COMPLETED,
         )
         .scalar()
     )
@@ -1064,7 +1232,7 @@ def trip_statistics(
         db.query(func.count(Trip.id))
         .filter(
             Trip.is_active == True,
-            Trip.status == "Cancelled",
+            Trip.status == TripStatus.CANCELLED,
         )
         .scalar()
     )
@@ -1073,7 +1241,7 @@ def trip_statistics(
         db.query(func.sum(Trip.actual_distance_km))
         .filter(
             Trip.is_active == True,
-            Trip.status == "Completed",
+            Trip.status == TripStatus.COMPLETED,
         )
         .scalar()
     ) or 0
@@ -1082,7 +1250,7 @@ def trip_statistics(
         db.query(func.sum(Trip.actual_fuel))
         .filter(
             Trip.is_active == True,
-            Trip.status == "Completed",
+            Trip.status == TripStatus.COMPLETED,
         )
         .scalar()
     ) or 0
@@ -1091,7 +1259,7 @@ def trip_statistics(
         db.query(func.sum(Trip.fuel_cost))
         .filter(
             Trip.is_active == True,
-            Trip.status == "Completed",
+            Trip.status == TripStatus.COMPLETED,
         )
         .scalar()
     ) or 0
@@ -1106,7 +1274,7 @@ def trip_statistics(
         )
         .filter(
             Trip.is_active == True,
-            Trip.status == "Completed",
+            Trip.status == TripStatus.COMPLETED,
         )
         .scalar()
     ) or 0
