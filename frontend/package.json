@@ -12,7 +12,10 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.0",
     "axios": "^1.18.1",
+<<<<<<< HEAD
     "axois": "^0.0.1-security",
+=======
+>>>>>>> 2957e08c62c7e777783cd28102048e06a454abe7
     "boxicons": "^2.1.4",
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
