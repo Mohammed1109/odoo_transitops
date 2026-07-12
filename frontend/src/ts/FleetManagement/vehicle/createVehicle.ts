@@ -1,5 +1,7 @@
 // src/ts/FleetManagement/vehicle/createVehicle.ts
 
+import { authHeaders } from "../../utils/authHeaders";
+
 export interface CreateVehiclePayload {
   registration_number: string;
 
@@ -53,9 +55,7 @@ export async function createVehicle(
       {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       }
     );

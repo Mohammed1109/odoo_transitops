@@ -9,71 +9,12 @@ import type { ColumnWithState } from "../../../components/utils/ManageColumns";
 import ManageColumns from "../../../components/utils/ManageColumns";
 import FormLayout from "../../../components/utils/FormLayout";
 import { createVehicle } from "../../../ts/FleetManagement/vehicle/createVehicle";
+import { getVehicles, type Vehicle } from "../../../ts/FleetManagement/vehicle/getVehicles";
 
 export type VehicleType = "Van" | "Truck" | "Mini";
 
 export type VehicleStatus = "Available" | "On Trip" | "In Shop" | "Retired";
 
-export interface Vehicle {
-  id: number;
-  regNumber: string; // "REG. NO. (UNIQUE)"
-  nameOrMode: string; // "NAME/MODE"
-  type: VehicleType; // "TYPE"
-  capacity: string; // "CAPACITY" e.g. "500 kg" / "5 Ton"
-  odometer: number; // "ODOMETER"
-  acquisitionCost: number; // "ACQ. COST"
-  status: VehicleStatus; // "STATUS"
-}
-
-// ==========================================================================
-// MOCK DATA
-// Replace this with a call to your vehicles service, e.g.:
-//   const data = await getVehiclesService();
-//   setVehicles(data);
-// ==========================================================================
-
-const MOCK_VEHICLES: Vehicle[] = [
-  {
-    id: 1,
-    regNumber: "GJ01AB4521",
-    nameOrMode: "VAN-05",
-    type: "Van",
-    capacity: "500 kg",
-    odometer: 74000,
-    acquisitionCost: 620000,
-    status: "Available",
-  },
-  {
-    id: 2,
-    regNumber: "GJ01AB9981",
-    nameOrMode: "TRUCK-11",
-    type: "Truck",
-    capacity: "5 Ton",
-    odometer: 182000,
-    acquisitionCost: 2450000,
-    status: "On Trip",
-  },
-  {
-    id: 3,
-    regNumber: "GJ01AB1120",
-    nameOrMode: "MINI-03",
-    type: "Mini",
-    capacity: "1 Ton",
-    odometer: 66000,
-    acquisitionCost: 410000,
-    status: "In Shop",
-  },
-  {
-    id: 4,
-    regNumber: "GJ01AB0008",
-    nameOrMode: "VAN-09",
-    type: "Van",
-    capacity: "750 kg",
-    odometer: 241900,
-    acquisitionCost: 590000,
-    status: "Retired",
-  },
-];
 
 const VEHICLE_TYPE_OPTIONS: { label: string; value: string }[] = [
   { label: "All", value: "All" },
@@ -1142,16 +1083,24 @@ const VehicleRegistry = () => {
   const loadVehicles = async () => {
     try {
       setIsLoading(true);
-      // TODO: replace with real API call
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setVehicles(MOCK_VEHICLES);
+
+      const response = await getVehicles({
+        vehicle_type: typeFilter,
+        status: statusFilter,
+      });
+
+      if (!response.success) {
+        toast.error("Failed to load vehicles.");
+        return;
+      }
+
+      setVehicles(response.data);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load vehicles.");
     } finally {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     loadVehicles();
   }, []);
@@ -1181,7 +1130,7 @@ const VehicleRegistry = () => {
   useEffect(() => {
     setColumnsConfig([
       {
-        key: "regNumber",
+        key: "registration_number",
         header: "Reg. No. (Unique)",
         visible: true,
         locked: true,
@@ -1198,15 +1147,19 @@ const VehicleRegistry = () => {
         ),
       },
       {
-        key: "nameOrMode",
+        key: "vehicle_name",
         header: "Name / Model",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
+        render: (_: any, row: Vehicle) =>
+          row.vehicle_model
+            ? `${row.vehicle_name} (${row.vehicle_model})`
+            : row.vehicle_name,
       },
       {
-        key: "type",
+        key: "vehicle_type",
         header: "Type",
         visible: true,
         locked: false,
@@ -1214,12 +1167,14 @@ const VehicleRegistry = () => {
         align: "left",
       },
       {
-        key: "capacity",
+        key: "maximum_load_capacity",
         header: "Capacity",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
+        render: (_: any, row: Vehicle) =>
+          `${row.maximum_load_capacity} ${row.capacity_unit}`,
       },
       {
         key: "odometer",
@@ -1228,16 +1183,18 @@ const VehicleRegistry = () => {
         locked: false,
         filterable: true,
         align: "left",
-        render: (value: number) => formatOdometer(value),
+        render: (value: number | null) =>
+          value != null ? formatOdometer(value) : "-",
       },
       {
-        key: "acquisitionCost",
+        key: "acquisition_cost",
         header: "Acq. Cost",
         visible: true,
         locked: false,
         filterable: true,
         align: "left",
-        render: (value: number) => formatCurrency(value),
+        render: (value: number | null) =>
+          value != null ? formatCurrency(value) : "-",
       },
       {
         key: "status",
@@ -1246,8 +1203,8 @@ const VehicleRegistry = () => {
         locked: false,
         filterable: true,
         align: "left",
-        render: (value: VehicleStatus) => (
-          <StatusBadge status={value} />
+        render: (value: string) => (
+          <StatusBadge status={value as VehicleStatus} />
         ),
       },
     ]);
@@ -1260,12 +1217,12 @@ const VehicleRegistry = () => {
   // ==========================================================================
   const filteredData = useMemo(() => {
     return vehicles.filter((vehicle) => {
-      const matchesType = typeFilter === "All" || vehicle.type === typeFilter;
+      const matchesType = typeFilter === "All" || vehicle.vehicle_type === typeFilter;
       const matchesStatus =
         statusFilter === "All" || vehicle.status === statusFilter;
       const matchesSearch =
         searchTerm.trim() === "" ||
-        vehicle.regNumber.toLowerCase().includes(searchTerm.toLowerCase());
+        vehicle.registration_number.toLowerCase().includes(searchTerm.toLowerCase());
 
       return matchesType && matchesStatus && matchesSearch;
     });

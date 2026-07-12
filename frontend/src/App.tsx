@@ -15,7 +15,6 @@ import FuelExpenseManagement from './pages/fleetManagement/fuelAndExpense/Fuelex
 import Maintenance from './pages/fleetManagement/maintenance/maintenance'
 import ReportLayout from './layout/ReportLayout'
 import Fuelcosting from './pages/fleetManagement/analytics/fuelcosting'
-import Roles from './pages/configuration/Roles/roles'
 
 function App() {
 
@@ -59,7 +58,6 @@ function App() {
           }
         >
           <Route index element={<Navigate to="administration" replace />} />
-          <Route path="roles" element={<Roles />} />
           <Route path="administration" element={<Administration />} />
           <Route path="smtp" element={<SMTP />} />
         </Route>
@@ -71,7 +69,7 @@ function App() {
               <MainLayout>
                 <VehicleRegistry />
               </MainLayout>
-          }
+            }
         />
 
         <Route path="/drivers"
@@ -79,7 +77,7 @@ function App() {
               <MainLayout>
                 <DriverRegistry />
               </MainLayout>
-            }
+          }
         />
 
         <Route path="/trips"
@@ -87,7 +85,7 @@ function App() {
               <MainLayout>
                 <Trip />
               </MainLayout>
-            }
+          }
         />
 
         <Route path="/fuel-expenses"
@@ -95,7 +93,7 @@ function App() {
               <MainLayout>
                 <FuelExpenseManagement />
               </MainLayout>
-           }
+          }
         />
 
         <Route path="/maintenance"
@@ -103,27 +101,20 @@ function App() {
               <MainLayout>
                 <Maintenance />
               </MainLayout>
-          }
+           }
         />
 
 
-        {/* Analytics */}
+        {/* Reports (EVT Report) */}
         <Route
           path="/analytics"
           element={
               <ReportLayout />
           }
         >
-          {/* Default Route */}
-          <Route
-            index
-            element={<Navigate to="fuelCost" replace />}
-          />
 
-          <Route
-            path="fuelCost"
-            element={<Fuelcosting />}
-          />
+          <Route path="fuelCost" element={<Fuelcosting />} />
+
         </Route>
 
 

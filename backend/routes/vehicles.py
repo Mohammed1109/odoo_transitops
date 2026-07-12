@@ -70,15 +70,11 @@ def create_new_vehicle(
 # ==========================================================
 # Get All Vehicles
 # ==========================================================
-
 @vehicles_router.get(
     "/list_vehicles",
     summary="Get All Vehicles",
 )
 def list_vehicles(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
-    search: str | None = Query(None),
     vehicle_type: str | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     db: Session = Depends(get_db),
@@ -86,9 +82,6 @@ def list_vehicles(
 ):
     return get_all_vehicles(
         db=db,
-        page=page,
-        page_size=page_size,
-        search=search,
         vehicle_type=vehicle_type,
         status=status_filter,
     )

@@ -167,12 +167,8 @@ def get_vehicle(
 # ==========================================================
 # Get All Vehicles
 # ==========================================================
-
 def get_all_vehicles(
     db: Session,
-    page: int = 1,
-    page_size: int = 20,
-    search: str | None = None,
     vehicle_type: str | None = None,
     status: str | None = None,
 ):
@@ -182,28 +178,10 @@ def get_all_vehicles(
     )
 
     # ---------------------------------------
-    # Search
-    # ---------------------------------------
-
-    if search:
-
-        search = f"%{search}%"
-
-        query = query.filter(
-            or_(
-                Vehicle.registration_number.ilike(search),
-                Vehicle.vehicle_name.ilike(search),
-                Vehicle.vehicle_model.ilike(search),
-                Vehicle.manufacturer.ilike(search),
-            )
-        )
-
-    # ---------------------------------------
     # Vehicle Type Filter
     # ---------------------------------------
 
     if vehicle_type:
-
         query = query.filter(
             Vehicle.vehicle_type == vehicle_type
         )
@@ -213,45 +191,23 @@ def get_all_vehicles(
     # ---------------------------------------
 
     if status:
-
         query = query.filter(
             Vehicle.status == status
         )
 
     # ---------------------------------------
-    # Total Count
-    # ---------------------------------------
-
-    total = query.count()
-
-    # ---------------------------------------
-    # Pagination
+    # Fetch All
     # ---------------------------------------
 
     vehicles = (
         query.order_by(Vehicle.id.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
         .all()
     )
 
     return {
-
         "success": True,
-
-        "page": page,
-
-        "page_size": page_size,
-
-        "total_records": total,
-
-        "total_pages": (
-            total + page_size - 1
-        ) // page_size,
-
         "data": vehicles,
     }
-
 
 # ==========================================================
 # Update Vehicle

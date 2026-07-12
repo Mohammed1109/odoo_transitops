@@ -1,6 +1,7 @@
 // src/ts/System/updateInitialCredentials.ts
 
 import axios from "axios";
+import { authHeaders } from "../utils/authHeaders";
 
 // ============================================================================
 // Types
@@ -39,9 +40,7 @@ export async function updateInitialPassword(
       `${base}/api/update_initial_password`,
       payload,
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders(),
       }
     );
 
