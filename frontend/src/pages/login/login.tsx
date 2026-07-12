@@ -87,11 +87,11 @@ export default function Login() {
 
       console.log("Logged in user:", user);
 
-      // Force password reset on first login
-      if (user.is_first_login) {
-        navigate("/resetuser");
-        return;
-      }
+      // // Force password reset on first login
+      // if (user.is_first_login) {
+      //   navigate("/resetuser");
+      //   return;
+      // }
 
       // Navigate based on role
       switch (user.role.toLowerCase()) {
