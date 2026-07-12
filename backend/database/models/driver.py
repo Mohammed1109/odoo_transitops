@@ -8,6 +8,7 @@ from sqlalchemy import (
     String,
 )
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 from database.database import Base
 
@@ -218,4 +219,12 @@ class Driver(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+    # ==========================================================
+    # Relationships
+    # ==========================================================
+
+    trips = relationship(
+        "Trip",
+        back_populates="driver",
     )
