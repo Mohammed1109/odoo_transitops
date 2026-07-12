@@ -41,12 +41,6 @@ const TRIP_STATUS_OPTIONS = [
   { label: "Canceled", value: "Canceled" },
 ];
 
-// ==========================================================================
-// MOCK DATA
-// Replace this with a call to your vehicles service, e.g.:
-//   const data = await getVehiclesService();
-//   setVehicles(data);
-// ==========================================================================
 
 const MOCK_TRIPS: Trip[] = [
   {
