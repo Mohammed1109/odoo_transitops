@@ -20,13 +20,13 @@ class VehicleBase(BaseModel):
 
     vehicle_type: str
 
-    maximum_load_capacity: float
+    maximum_load_capacity: float = Field(..., ge=0)
 
     capacity_unit: str = "kg"
 
-    odometer: float = 0
+    odometer: float = Field(0, ge=0)
 
-    acquisition_cost: float = 0
+    acquisition_cost: float = Field(0, ge=0)
 
     purchase_date: Optional[date] = None
 
@@ -40,7 +40,7 @@ class VehicleBase(BaseModel):
 
     fuel_type: Optional[str] = None
 
-    fuel_tank_capacity: Optional[float] = None
+    fuel_tank_capacity: Optional[float] = Field(None, ge=0)
 
     gps_tracker_id: Optional[str] = None
 
@@ -85,13 +85,13 @@ class VehicleUpdate(BaseModel):
 
     vehicle_type: Optional[str] = None
 
-    maximum_load_capacity: Optional[float] = None
+    maximum_load_capacity: Optional[float] = Field(None, ge=0)
 
     capacity_unit: Optional[str] = None
 
-    odometer: Optional[float] = None
+    odometer: Optional[float] = Field(None, ge=0)
 
-    acquisition_cost: Optional[float] = None
+    acquisition_cost: Optional[float] = Field(None, ge=0)
 
     purchase_date: Optional[date] = None
 
@@ -105,7 +105,7 @@ class VehicleUpdate(BaseModel):
 
     fuel_type: Optional[str] = None
 
-    fuel_tank_capacity: Optional[float] = None
+    fuel_tank_capacity: Optional[float] = Field(None, ge=0)
 
     gps_tracker_id: Optional[str] = None
 
