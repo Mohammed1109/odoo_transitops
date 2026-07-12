@@ -185,3 +185,8 @@ class Vehicle(Base):
         "Maintenance",
         back_populates="vehicle",
     )
+
+    fuel_logs = relationship(
+        "FuelLog",
+        back_populates="vehicle",
+    )

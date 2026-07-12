@@ -270,3 +270,8 @@ class Trip(Base):
         "Driver",
         back_populates="trips",
     )
+
+    fuel_logs = relationship(
+        "FuelLog",
+        back_populates="trip",
+    )
