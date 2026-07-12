@@ -59,7 +59,7 @@ export function enableBFCacheProtection() {
 // ============================================================================
 
 export async function authenticateUserReact(
-  username: string,
+  usernameOrEmail: string,
   password: string
 ): Promise<LoginResult> {
   try {
@@ -70,9 +70,8 @@ export async function authenticateUserReact(
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
-          username,
+          username_or_email: usernameOrEmail,
           password,
         }),
       }
@@ -86,43 +85,46 @@ export async function authenticateUserReact(
 
       return {
         success: false,
-        message:
-          "Server returned HTML instead of JSON.",
+        message: "Server returned HTML instead of JSON.",
       };
     }
 
     const data = JSON.parse(text);
 
     if (response.ok) {
+      const loginData = data as LoginResponse;
+
       resetSession();
 
-      // Save JWT
+      // Save JWT Token
       localStorage.setItem(
         "access_token",
-        data.access_token
+        loginData.access_token
       );
 
-      // Save current user
+      // Save Logged-in User
       localStorage.setItem(
         "user",
         JSON.stringify({
-          full_name: data.full_name,
-          username: data.username,
-          email: data.email,
-          role: data.role,
-          is_first_login: data.is_first_login,
+          full_name: loginData.full_name,
+          username: loginData.username,
+          email: loginData.email,
+          role: loginData.role,
+          is_first_login: loginData.is_first_login,
         })
       );
 
       return {
         success: true,
-        data,
+        data: loginData,
       };
     }
 
     return {
       success: false,
-      message: data.detail || "Invalid username or password.",
+      message:
+        data.detail ||
+        "Invalid username/email or password.",
     };
   } catch (error) {
     console.error(error);
@@ -151,18 +153,20 @@ export function logout() {
 // Helpers
 // ============================================================================
 
-export function getAccessToken() {
+export function getAccessToken(): string | null {
   return localStorage.getItem("access_token");
 }
 
-export function getCurrentUser() {
+export function getCurrentUser(): Omit<LoginResponse, "access_token" | "token_type"> | null {
   const user = localStorage.getItem("user");
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   return JSON.parse(user);
 }
 
-export function isAuthenticated() {
+export function isAuthenticated(): boolean {
   return !!localStorage.getItem("access_token");
 }

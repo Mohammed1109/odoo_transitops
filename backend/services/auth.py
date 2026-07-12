@@ -127,7 +127,7 @@ def create_default_admin(db: Session) -> None:
     admin_user = User(
         full_name="System Administrator",
         username="admin",
-        email="admin@transitops.local",
+        email="admin@transitops.com",
         password_hash=hash_password("Admin@123"),
         role_id=admin_role.id,
         is_active=True,

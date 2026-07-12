@@ -1,18 +1,13 @@
-from sqlalchemy import (
-    Boolean,
-    Column,
-    Date,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-)
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, Integer #type: ignore
+from sqlalchemy.orm import relationship  # type: ignore
 
 from database.database import Base
+from database.types import (
+    UTCDateTime,
+    UString,
+    UText,
+    now_utc,
+)
 
 
 class Trip(Base):
@@ -23,10 +18,10 @@ class Trip(Base):
     # Primary Key
     # ==========================================================
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     trip_number = Column(
-        String(50),
+        UString(50),
         unique=True,
         nullable=False,
         index=True,
@@ -38,14 +33,22 @@ class Trip(Base):
 
     vehicle_id = Column(
         Integer,
-        ForeignKey("vehicles.id"),
+        ForeignKey(
+            "vehicles.id",
+            onupdate="CASCADE",
+            ondelete="RESTRICT",
+        ),
         nullable=False,
         index=True,
     )
 
     driver_id = Column(
         Integer,
-        ForeignKey("drivers.id"),
+        ForeignKey(
+            "drivers.id",
+            onupdate="CASCADE",
+            ondelete="RESTRICT",
+        ),
         nullable=False,
         index=True,
     )
@@ -55,17 +58,17 @@ class Trip(Base):
     # ==========================================================
 
     source = Column(
-        String(200),
+        UString(200),
         nullable=False,
     )
 
     destination = Column(
-        String(200),
+        UString(200),
         nullable=False,
     )
 
     intermediate_stop = Column(
-        String(500),
+        UString(500),
     )
 
     planned_distance_km = Column(
@@ -83,11 +86,11 @@ class Trip(Base):
     # ==========================================================
 
     cargo_name = Column(
-        String(200),
+        UString(200),
     )
 
     cargo_description = Column(
-        Text,
+        UText,
     )
 
     cargo_weight = Column(
@@ -96,7 +99,7 @@ class Trip(Base):
     )
 
     cargo_unit = Column(
-        String(20),
+        UString(20),
         default="kg",
     )
 
@@ -105,19 +108,21 @@ class Trip(Base):
     # ==========================================================
 
     customer_name = Column(
-        String(150),
+        UString(150),
     )
 
     customer_phone = Column(
-        String(20),
+        UString(20),
     )
 
     customer_email = Column(
-        String(150),
+        UString(150),
     )
+
     priority = Column(
-    String(20),
-    default="Normal",)
+        UString(20),
+        default="Normal",
+    )
 
     # ==========================================================
     # Odometer
@@ -139,11 +144,11 @@ class Trip(Base):
 
     scheduled_date = Column(Date)
 
-    dispatch_time = Column(DateTime)
+    dispatch_time = Column(UTCDateTime())
 
-    estimated_arrival = Column(DateTime)
+    estimated_arrival = Column(UTCDateTime())
 
-    completion_time = Column(DateTime)
+    completion_time = Column(UTCDateTime())
 
     # ==========================================================
     # GPS
@@ -200,7 +205,7 @@ class Trip(Base):
     # ==========================================================
 
     status = Column(
-        String(30),
+        UString(30),
         default="Draft",
     )
 
@@ -214,19 +219,19 @@ class Trip(Base):
     # ==========================================================
 
     dispatched_by = Column(
-        String(100),
+        UString(100),
     )
 
     dispatch_notes = Column(
-        Text,
+        UText,
     )
 
     completion_notes = Column(
-        Text,
+        UText,
     )
 
     cancellation_reason = Column(
-        Text,
+        UText,
     )
 
     # ==========================================================
@@ -236,23 +241,29 @@ class Trip(Base):
     is_active = Column(
         Boolean,
         default=True,
+        nullable=False,
     )
 
     created_at = Column(
-        DateTime,
-        server_default=func.now(),
+        UTCDateTime(),
+        default=now_utc,
         nullable=False,
     )
 
     updated_at = Column(
-        DateTime,
-        server_default=func.now(),
-        onupdate=func.now(),
+        UTCDateTime(),
+        default=now_utc,
+        onupdate=now_utc,
         nullable=False,
     )
+
+    # ==========================================================
+    # Relationships
+    # ==========================================================
+
     vehicle = relationship(
-    "Vehicle",
-    back_populates="trips",
+        "Vehicle",
+        back_populates="trips",
     )
 
     driver = relationship(

@@ -13,7 +13,8 @@ from database.database import (
 )
 
 from services.auth import create_default_admin
-from database.database import SessionLocal
+import database.database as database
+
 
 # -------------------------------
 # Initialize Database
@@ -27,7 +28,7 @@ create_tables()
 # --------------------------------------------------
 # Create Default Administrator
 # --------------------------------------------------
-db = SessionLocal()
+db = database.SessionLocal()
 
 try:
     create_default_admin(db)
@@ -95,11 +96,11 @@ from routes.trips import trips_router
 # from routes.dashboard import router as dashboard_router
 # from routes.reports import router as reports_router
 
-app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(auth_router, prefix="/api", tags=["Authentication"])
 # app.include_router(users_router, prefix="/api/users", tags=["Users"])
-app.include_router(vehicles_router, prefix="/api/vehicles", tags=["Vehicles"])
-app.include_router(drivers_router, prefix="/api/drivers", tags=["Drivers"])
-app.include_router(trips_router, prefix="/api/trips", tags=["Trips"])
+app.include_router(vehicles_router, prefix="/api", tags=["Vehicles"])
+app.include_router(drivers_router, prefix="/api", tags=["Drivers"])
+app.include_router(trips_router, prefix="/api", tags=["Trips"])
 # app.include_router(maintenance_router, prefix="/api/maintenance", tags=["Maintenance"])
 # app.include_router(fuel_router, prefix="/api/fuel", tags=["Fuel"])
 # app.include_router(expenses_router, prefix="/api/expenses", tags=["Expenses"])
