@@ -12,6 +12,7 @@ import SMTP from './pages/configuration/smtp/SMTP'
 import VehicleRegistry from './pages/fleetManagement/Fleet/fleet'
 import DriverRegistry from './pages/fleetManagement/driverAndSafetyProfile/driver'
 import Trip from './pages/fleetManagement/TripDispatcher/Trip'
+import Maintenance from './pages/fleetManagement/maintenance/maintenance'
 
 function App() {
 
@@ -88,6 +89,15 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <Trip />
+              </MainLayout>
+            </ProtectedRoute>}
+        />
+
+        <Route path="/maintenance"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Maintenance />
               </MainLayout>
             </ProtectedRoute>}
         />
