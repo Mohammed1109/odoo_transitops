@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import NetworkCanvasBackground from "../components/sidebar/NetworkCanvasBackground";
+import FleetSidebarBackground from "../components/sidebar/FleetCanvasBackground";
 
 export default function Sidebar({
   onToggle,
@@ -55,7 +55,7 @@ export default function Sidebar({
 
           {/* Background */}
           <div className="pointer-events-none absolute inset-0 z-0">
-            <NetworkCanvasBackground />
+            <FleetSidebarBackground />
 
             {/* Glass blur overlay */}
             <div className="absolute inset-0 bg-[#0f1720]/60 backdrop-blur-0" />
@@ -69,10 +69,17 @@ export default function Sidebar({
 
             {/*  HEADER  */}
             <div className="flex items-center gap-3 px-3 py-3 border-b border-gray-800 flex-shrink-0">
-              <div className="flex items-center gap-1 w-full">
-                {/* Logo only */}
-               
-                <div className="text-lg font-semibold">TransitOps</div>
+              <div className="flex items-center gap-3 w-full">
+                <img
+                  src="/Logo.png"
+                  alt="TransitOps Logo"
+                  className="h-12 w-16"
+                  draggable={false}
+                />
+
+                <div className="text-lg font-semibold">
+                  TransitOps
+                </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
@@ -150,17 +157,6 @@ export default function Sidebar({
 
             {/* FOOTER */}
             <div className="px-3 py-2 border-t border-gray-800 flex-shrink-0">
-              <FooterLink
-                to="/help"
-                icon="fas fa-question-circle"
-                label="Help"
-              />
-
-              <FooterLink
-                to="/settings"
-                icon="fas fa-cog"
-                label="Setting"
-              />
 
               <FooterLink
                 to="#"

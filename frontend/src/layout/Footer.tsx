@@ -86,7 +86,7 @@ export default function Footer({ sidebarOpen }: FooterProps) {
           </>
         )}
         <span className="text-gray-700 font-medium whitespace-nowrap text-xs sm:text-sm">
-          © 2026 My App. All rights reserved.
+          © 2026 TransitOps. All rights reserved.
         </span>
       </div>
 
