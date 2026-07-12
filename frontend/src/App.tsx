@@ -5,6 +5,7 @@ import ProtectedRoute from './hook/UseGloablProtectedRoute'
 import MainLayout from './hook/homeLayout'
 import Login from './pages/login/login'
 import Home from './pages/home/home'
+import FirstTimeSetup from './pages/firsttimelogin/Firsttimelogin'
 
 function App() {
 
@@ -29,7 +30,7 @@ function App() {
         {/* Login */}
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
-        {/* <Route path="/resetuser" element={<ReseUserPage />} /> */}
+        <Route path="/resetuser" element={<FirstTimeSetup />} />
 
         {/* Home */}
         <Route
