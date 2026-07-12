@@ -2,7 +2,6 @@
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
     Path,
     Query,
     status,
@@ -212,7 +211,7 @@ def update_status(
 # Update Odometer
 # ==========================================================
 @vehicles_router.patch(
-    "update_odometer/{vehicle_id}",
+    "/update_odometer/{vehicle_id}",
     summary="Update Odometer",
 )
 def update_odometer(

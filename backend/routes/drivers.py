@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, Path, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session #type: ignore
 
 from database.database import get_db
 
