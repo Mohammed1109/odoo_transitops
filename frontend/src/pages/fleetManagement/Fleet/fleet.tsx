@@ -427,15 +427,6 @@ useEffect(() => {
           handleDeleteSelected(rows);
         }}
       />
-
-      {/* Footer rule note, matches the reference screenshot */}
-      <p className="text-xs text-amber-600">
-        Rule: Registration No. must be unique • Retired/In Shop vehicles are
-        hidden from Trip Dispatcher
-      </p>
-
-      {/* TODO: mount your Add/Edit Vehicle FormLayout here when isFormOpen
-          is true, mirroring how Fleet.tsx mounts StudentFormFields. */}
     </div>
   );
 };
