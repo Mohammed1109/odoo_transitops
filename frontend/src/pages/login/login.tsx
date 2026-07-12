@@ -12,16 +12,6 @@ import {
   type Role,
 } from "../../ts/login/login";
 
-// Status legend shown on the brand panel — mirrors the vehicle status enum.
-const STATUS_LEGEND: { label: string; color: string }[] = [
-  { label: "Available", color: "#2F9E64" },
-  { label: "On Trip", color: "#E08D2C" },
-  { label: "In Shop", color: "#7C8B9C" },
-  { label: "Retired", color: "#D64545" },
-];
-
-const ROLE_STOPS = ["Depot", "Fleet Mgr", "Dispatch", "Finance"];
-
 export default function Login() {
   const navigate = useNavigate();
 
