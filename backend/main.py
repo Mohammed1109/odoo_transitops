@@ -91,6 +91,7 @@ from routes.vehicles import vehicles_router
 from routes.drivers import drivers_router
 from routes.trips import trips_router
 from routes.maintenance import maintenance_router
+from routes.role import role_router
 # from routes.fuel import router as fuel_router
 # from routes.expenses import router as expenses_router
 # from routes.dashboard import router as dashboard_router
@@ -102,6 +103,7 @@ app.include_router(vehicles_router, prefix="/api", tags=["Vehicles"])
 app.include_router(drivers_router, prefix="/api", tags=["Drivers"])
 app.include_router(trips_router, prefix="/api", tags=["Trips"])
 app.include_router(maintenance_router, prefix="/api", tags=["Maintenance"])
+app.include_router(role_router, prefix="/api/roles", tags=["Roles"])
 # app.include_router(fuel_router, prefix="/api/fuel", tags=["Fuel"])
 # app.include_router(expenses_router, prefix="/api/expenses", tags=["Expenses"])
 # app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
