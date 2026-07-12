@@ -10,6 +10,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import FleetLiveMap from "../../components/map/Fleetlivemap";
 
 /* ----------------------------- Stat Card ----------------------------- */
 
@@ -415,6 +416,9 @@ export default function Home() {
 
       <div className="mt-6">
         <RecentActivityTable />
+      </div>
+      <div className="mt-6">
+        <FleetLiveMap />
       </div>
     </div>
   );

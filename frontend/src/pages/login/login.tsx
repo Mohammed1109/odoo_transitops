@@ -6,7 +6,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  ChevronDown,
   ShieldCheck,
   Truck,
   ArrowRight,
@@ -15,6 +14,7 @@ import {
   TrendingUp,
   DollarSign,
 } from "lucide-react";
+import { authenticateUserReact } from "../../ts/login/login";
 
 
 
@@ -55,76 +55,79 @@ export default function Login() {
 
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSending, setForgotSending] = useState(false);
+  const [forgotSending, ] = useState(false);
 
- const handleLogin = async (
-  e: React.FormEvent<HTMLFormElement>
-) => {
-  e.preventDefault();
+  const handleLogin = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
 
-  if (!username.trim() || !password.trim()) {
-    setError("Username and password are required.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setError("");
-
-    const result = await authenticateUserReact(
-      username,
-      password
-    );
-
-    if (!result.success) {
-      setError(result.message || "Login failed.");
-      toast.error(result.message || "Login failed.");
+    if (!email.trim() || !password.trim()) {
+      setError("Email and password are required.");
       return;
     }
 
-    toast.success("Login successful.");
+    try {
+      setLoading(true);
+      setError("");
 
-    // User information returned from backend
-    const user = result.data!;
+      const result = await authenticateUserReact(
+        email,
+        password
+      );
 
-    console.log(user);
+      if (!result.success) {
+        setError(result.message || "Invalid email or password.");
+        toast.error(result.message || "Login failed.");
+        return;
+      }
 
-    // First login
-    if (user.is_first_login) {
-      navigate("/reset-password");
-      return;
+      const user = result.data!;
+
+      toast.success(`Welcome back, ${user.full_name}!`);
+
+      console.log("Logged in user:", user);
+
+      // Force password reset on first login
+      if (user.is_first_login) {
+        navigate("/reset-password");
+        return;
+      }
+
+      // Navigate based on role
+      switch (user.role.toLowerCase()) {
+        case "admin":
+          navigate("/home");
+          break;
+
+        case "manager":
+          navigate("/home");
+          break;
+
+        case "dispatcher":
+          navigate("/home");
+          break;
+
+        case "driver":
+          navigate("/home");
+          break;
+
+        default:
+          navigate("/home");
+          break;
+      }
+    } catch (error: any) {
+      console.error(error);
+
+      setError(error.message || "Something went wrong.");
+      toast.error(error.message || "Unable to login.");
+    } finally {
+      setLoading(false);
     }
-
-    // Navigate according to role
-    switch (user.role.toLowerCase()) {
-      case "admin":
-        navigate("/home");
-        break;
-
-      case "manager":
-        navigate("/home");
-        break;
-
-      case "dispatcher":
-        navigate("/home");
-        break;
-
-      default:
-        navigate("/home");
-        break;
-    }
-  } catch (error: any) {
-    console.error(error);
-
-    setError(error.message || "Something went wrong.");
-    toast.error(error.message || "Something went wrong.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleForgotPassword = async () => {
- 
+
   };
 
   return (
