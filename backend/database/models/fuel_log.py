@@ -140,13 +140,11 @@ class FuelLog(Base):
 
     created_at = Column(
         UTCDateTime,
-        server_default=now_utc(),
         nullable=False,
     )
 
     updated_at = Column(
         UTCDateTime,
-        server_default=now_utc(),
         onupdate=now_utc(),
         nullable=False,
     )
