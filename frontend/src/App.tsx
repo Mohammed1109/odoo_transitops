@@ -16,6 +16,7 @@ import FuelExpenseManagement from './pages/fleetManagement/fuelAndExpense/Fuelex
 import Maintenance from './pages/fleetManagement/maintenance/maintenance'
 import ReportLayout from './layout/ReportLayout'
 import Fuelcosting from './pages/fleetManagement/analytics/fuelcosting'
+import Roles from './pages/configuration/Roles/roles'
 
 function App() {
 
@@ -63,6 +64,7 @@ function App() {
           }
         >
           <Route index element={<Navigate to="administration" replace />} />
+          <Route path="roles" element={<Roles />} />
           <Route path="administration" element={<Administration />} />
           <Route path="smtp" element={<SMTP />} />
         </Route>

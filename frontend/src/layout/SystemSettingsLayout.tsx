@@ -19,9 +19,9 @@ export default function SystemSettingsLayout() {
 
 
   const menuItems = [
+    { path: "roles", label: "Add Roles", icon: UserCog },
     { path: "administration", label: "Add Administrators", icon: UserCog },
-    { path: "smtp", label: "Add SMTP Confrigution", icon: Mail },
-  
+    { path: "smtp", label: "Add SMTP Configuration", icon: Mail },
   ];
 
   return (
