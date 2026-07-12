@@ -1,0 +1,592 @@
+import { useEffect, useMemo, useState } from "react";
+import SearchBar from "../../../components/utils/SearchBar";
+import RefreshButton from "../../../components/utils/RefreshButton";
+import ReusableTable from "../../../components/utils/ReusableTable";
+import { LayoutGrid, Plus } from "lucide-react";
+import { toast } from "sonner";
+import type { ColumnWithState } from "../../../components/utils/ManageColumns";
+import ManageColumns from "../../../components/utils/ManageColumns";
+
+export type ExpenseStatus = "Available" | "Completed" | "Pending";
+
+export interface FuelLog {
+  id: number;
+  vehicle: string; // "VEHICLE"
+  date: string; // "DATE" e.g. "05 Jul 2026"
+  liters: number; // "LITERS"
+  fuelCost: number; // "FUEL COST"
+}
+
+export interface OtherExpense {
+  id: number;
+  trip: string; // "TRIP"
+  vehicle: string; // "VEHICLE"
+  toll: number; // "TOLL"
+  other: number; // "OTHER"
+  maintLinked: number; // "MAINT. (LINKED)"
+  status: ExpenseStatus; // status badge shown in "TOTAL" column area
+}
+
+type TabKey = "fuel" | "expenses";
+
+// ==========================================================================
+// MOCK DATA
+// Replace these with calls to your fuel / expense services, e.g.:
+//   const logs = await getFuelLogsService();
+//   setFuelLogs(logs);
+//   const expenses = await getOtherExpensesService();
+//   setOtherExpenses(expenses);
+// ==========================================================================
+
+const MOCK_FUEL_LOGS: FuelLog[] = [
+  { id: 1, vehicle: "VAN-05", date: "05 Jul 2026", liters: 42, fuelCost: 3150 },
+  { id: 2, vehicle: "TRUCK-11", date: "06 Jul 2026", liters: 110, fuelCost: 8400 },
+  { id: 3, vehicle: "MINI-08", date: "06 Jul 2026", liters: 28, fuelCost: 2050 },
+];
+
+const MOCK_OTHER_EXPENSES: OtherExpense[] = [
+  {
+    id: 1,
+    trip: "TR001",
+    vehicle: "VAN-05",
+    toll: 120,
+    other: 0,
+    maintLinked: 0,
+    status: "Available",
+  },
+  {
+    id: 2,
+    trip: "TR002",
+    vehicle: "TRK-12",
+    toll: 340,
+    other: 150,
+    maintLinked: 18000,
+    status: "Completed",
+  },
+];
+
+// Badge styling per status, matched to the reference screenshot's colors.
+const STATUS_BADGE_STYLES: Record<ExpenseStatus, string> = {
+  Available: "bg-emerald-100 text-emerald-700",
+  Completed: "bg-lime-100 text-lime-700",
+  Pending: "bg-amber-100 text-amber-700",
+};
+
+const StatusBadge = ({ status }: { status: ExpenseStatus }) => (
+  <span
+    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${STATUS_BADGE_STYLES[status]}`}
+  >
+    {status}
+  </span>
+);
+
+const formatCurrency = (value: number) => value.toLocaleString("en-IN");
+
+const formatLiters = (value: number) => `${value} L`;
+
+// ==========================================================================
+// COMPONENT
+// ==========================================================================
+
+const FuelExpenseManagement = () => {
+  // ---- tab state ---------------------------------------------------------
+  const [activeTab, setActiveTab] = useState<TabKey>("fuel");
+
+  // ---- data state -------------------------------------------------------
+  const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
+  const [otherExpenses, setOtherExpenses] = useState<OtherExpense[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isManageFuelOpen, setIsManageFuelOpen] = useState(false);
+  const [isManageExpenseOpen, setIsManageExpenseOpen] = useState(false);
+
+  // ---- search state (separate per tab) ------------------------------------
+  const [fuelInputValue, setFuelInputValue] = useState("");
+  const [fuelSearchTerm, setFuelSearchTerm] = useState("");
+  const [expenseInputValue, setExpenseInputValue] = useState("");
+  const [expenseSearchTerm, setExpenseSearchTerm] = useState("");
+
+  // ---- table state --------------------------------------------------------
+  const [fuelCurrentPage, setFuelCurrentPage] = useState(1);
+  const [fuelItemsPerPage, setFuelItemsPerPage] = useState(25);
+  const [expenseCurrentPage, setExpenseCurrentPage] = useState(1);
+  const [expenseItemsPerPage, setExpenseItemsPerPage] = useState(25);
+  const [, setSelectedFuelRows] = useState<FuelLog[]>([]);
+  const [, setSelectedExpenseRows] = useState<OtherExpense[]>([]);
+
+  // form state left as a placeholder — wire up a FormLayout + fields the
+  // same way StudentFormFields is used in Fleet.tsx once you have the
+  // fuel log / expense create forms ready.
+  const [, setIsFuelFormOpen] = useState(false);
+  const [, setIsExpenseFormOpen] = useState(false);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      // TODO: replace with real API calls
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      setFuelLogs(MOCK_FUEL_LOGS);
+      setOtherExpenses(MOCK_OTHER_EXPENSES);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load fuel & expense data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // ==========================================================================
+  // FUEL LOGS — TABLE COLUMNS
+  // ==========================================================================
+  const [fuelColumnsConfig, setFuelColumnsConfig] = useState<
+    ColumnWithState[]
+  >([]);
+
+  useEffect(() => {
+    setFuelColumnsConfig([
+      {
+        key: "vehicle",
+        header: "Vehicle",
+        visible: true,
+        locked: true,
+        filterable: true,
+        align: "left",
+        render: (value: string, row: FuelLog) => (
+          <button
+            type="button"
+            className="text-blue-600 hover:underline bg-transparent p-0 text-left"
+            onClick={() => handleViewFuelLog(row)}
+          >
+            {value}
+          </button>
+        ),
+      },
+      {
+        key: "date",
+        header: "Date",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+      },
+      {
+        key: "liters",
+        header: "Liters",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: number) => formatLiters(value),
+      },
+      {
+        key: "fuelCost",
+        header: "Fuel Cost",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: number) => formatCurrency(value),
+      },
+    ]);
+  }, []);
+
+  const visibleFuelColumns = fuelColumnsConfig.filter(
+    (column) => column.visible
+  );
+
+  // ==========================================================================
+  // OTHER EXPENSES — TABLE COLUMNS
+  // ==========================================================================
+  const [expenseColumnsConfig, setExpenseColumnsConfig] = useState<
+    ColumnWithState[]
+  >([]);
+
+  useEffect(() => {
+    setExpenseColumnsConfig([
+      {
+        key: "trip",
+        header: "Trip",
+        visible: true,
+        locked: true,
+        filterable: true,
+        align: "left",
+        render: (value: string, row: OtherExpense) => (
+          <button
+            type="button"
+            className="text-blue-600 hover:underline bg-transparent p-0 text-left"
+            onClick={() => handleViewExpense(row)}
+          >
+            {value}
+          </button>
+        ),
+      },
+      {
+        key: "vehicle",
+        header: "Vehicle",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+      },
+      {
+        key: "toll",
+        header: "Toll",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: number) => formatCurrency(value),
+      },
+      {
+        key: "other",
+        header: "Other",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: number) => formatCurrency(value),
+      },
+      {
+        key: "maintLinked",
+        header: "Maint. (Linked)",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: number) => formatCurrency(value),
+      },
+      {
+        key: "status",
+        header: "Total",
+        visible: true,
+        locked: false,
+        filterable: true,
+        align: "left",
+        render: (value: ExpenseStatus) => <StatusBadge status={value} />,
+      },
+    ]);
+  }, []);
+
+  const visibleExpenseColumns = expenseColumnsConfig.filter(
+    (column) => column.visible
+  );
+
+  // ==========================================================================
+  // FILTERING (each tab has its own search bar / term)
+  // ==========================================================================
+  const filteredFuelLogs = useMemo(() => {
+    return fuelLogs.filter((log) => {
+      const matchesSearch =
+        fuelSearchTerm.trim() === "" ||
+        log.vehicle.toLowerCase().includes(fuelSearchTerm.toLowerCase());
+      return matchesSearch;
+    });
+  }, [fuelLogs, fuelSearchTerm]);
+
+  const filteredOtherExpenses = useMemo(() => {
+    return otherExpenses.filter((expense) => {
+      const matchesSearch =
+        expenseSearchTerm.trim() === "" ||
+        expense.vehicle
+          .toLowerCase()
+          .includes(expenseSearchTerm.toLowerCase()) ||
+        expense.trip.toLowerCase().includes(expenseSearchTerm.toLowerCase());
+      return matchesSearch;
+    });
+  }, [otherExpenses, expenseSearchTerm]);
+
+  // ==========================================================================
+  // HANDLERS — placeholders wired for backend hookup
+  // ==========================================================================
+  const handleViewFuelLog = (row: FuelLog) => {
+    // TODO: open a fuel log detail view / form in edit mode
+    console.log("View fuel log", row);
+  };
+
+  const handleViewExpense = (row: OtherExpense) => {
+    // TODO: open an expense detail view / form in edit mode
+    console.log("View expense", row);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadData();
+    setIsRefreshing(false);
+  };
+
+  const handleEditFuelSelected = (rows: FuelLog[]) => {
+    if (rows.length !== 1) {
+      toast.warning("Please select exactly one fuel log to edit.");
+      return;
+    }
+    setSelectedFuelRows(rows);
+    setIsFuelFormOpen(true);
+    // TODO: populate form fields from rows[0], call updateFuelLogService()
+    // on submit.
+  };
+
+  const handleDeleteFuelSelected = (rows: FuelLog[]) => {
+    if (!rows.length) {
+      toast.warning("Please select fuel log(s) to delete.");
+      return;
+    }
+    // TODO: confirm with Swal, call deleteFuelLogsService(ids), then
+    // await loadData().
+    console.log("Delete fuel logs", rows);
+  };
+
+  const handleEditExpenseSelected = (rows: OtherExpense[]) => {
+    if (rows.length !== 1) {
+      toast.warning("Please select exactly one expense to edit.");
+      return;
+    }
+    setSelectedExpenseRows(rows);
+    setIsExpenseFormOpen(true);
+    // TODO: populate form fields from rows[0], call updateExpenseService()
+    // on submit.
+  };
+
+  const handleDeleteExpenseSelected = (rows: OtherExpense[]) => {
+    if (!rows.length) {
+      toast.warning("Please select expense(s) to delete.");
+      return;
+    }
+    // TODO: confirm with Swal, call deleteExpensesService(ids), then
+    // await loadData().
+    console.log("Delete expenses", rows);
+  };
+
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: "fuel", label: "Fuel Logs" },
+    { key: "expenses", label: "Other Expenses (Toll / Misc)" },
+  ];
+
+  return (
+    <div className="flex flex-col gap-3 h-full overflow-hidden bg-gray-100">
+      {/* Tab Switcher */}
+      <div className="flex items-center gap-2 border-b border-gray-200">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px ${
+              activeTab === tab.key
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ================================================================== */}
+      {/* FUEL LOGS TAB */}
+      {/* ================================================================== */}
+      {activeTab === "fuel" && (
+        <div className="flex flex-col gap-2">
+          {/* Search / Log Fuel / Manage Columns / Refresh Bar */}
+          <div className="flex justify-between items-center gap-4 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-64">
+                <SearchBar
+                  value={fuelInputValue}
+                  loading={isLoading}
+                  placeholder="Search vehicle..."
+                  onChange={(val) => {
+                    setFuelInputValue(val);
+                    if (val.trim() === "") {
+                      setFuelSearchTerm("");
+                    }
+                  }}
+                  onSearch={(val) => {
+                    setFuelSearchTerm(val.trim());
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Log Fuel */}
+              <button
+                onClick={() => {
+                  // resetFuelForm();
+                  setIsFuelFormOpen(true);
+                }}
+                className="flex items-center gap-2 p-2 bg-white border rounded-xl hover:bg-gray-100"
+              >
+                <Plus className="w-4 h-4" />
+                Log Fuel
+              </button>
+
+              {/* Manage Columns */}
+              <button
+                className="p-2 bg-white border rounded-lg hover:bg-gray-100"
+                onClick={() => setIsManageFuelOpen(true)}
+                title="Manage Columns"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+
+              <RefreshButton loading={isRefreshing} onClick={handleRefresh} />
+            </div>
+          </div>
+
+          <ReusableTable
+            loading={isLoading}
+            tableId="FuelLogs-Table"
+            columns={visibleFuelColumns}
+            data={filteredFuelLogs}
+            striped
+            hoverEffect
+            showSelection
+            emptyMessage="No fuel logs found"
+            maxHeight="420px"
+            pagination={true}
+            currentPage={fuelCurrentPage}
+            totalItems={filteredFuelLogs.length}
+            totalPages={
+              Math.ceil(filteredFuelLogs.length / fuelItemsPerPage) || 1
+            }
+            itemsPerPage={fuelItemsPerPage}
+            onPageChange={(page) => setFuelCurrentPage(page)}
+            onItemsPerPageChange={(val) => {
+              setFuelItemsPerPage(val);
+              setFuelCurrentPage(1);
+            }}
+            onEditSelected={(ids: (string | number)[]) => {
+              const rows = filteredFuelLogs.filter((row) =>
+                ids.map(Number).includes(row.id)
+              );
+              handleEditFuelSelected(rows);
+            }}
+            onDeleteSelected={(ids: (string | number)[]) => {
+              const rows = filteredFuelLogs.filter((row) =>
+                ids.map(Number).includes(row.id)
+              );
+              handleDeleteFuelSelected(rows);
+            }}
+          />
+
+          {/* Manage Columns — Fuel Logs */}
+          <ManageColumns
+            open={isManageFuelOpen}
+            onClose={() => setIsManageFuelOpen(false)}
+            columns={fuelColumnsConfig}
+            onSave={(updated) => {
+              setFuelColumnsConfig(updated);
+              setIsManageFuelOpen(false);
+            }}
+          />
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* OTHER EXPENSES TAB */}
+      {/* ================================================================== */}
+      {activeTab === "expenses" && (
+        <div className="flex flex-col gap-2">
+          {/* Search / Add Expense / Manage Columns / Refresh Bar */}
+          <div className="flex justify-between items-center gap-4 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-64">
+                <SearchBar
+                  value={expenseInputValue}
+                  loading={isLoading}
+                  placeholder="Search vehicle / trip..."
+                  onChange={(val) => {
+                    setExpenseInputValue(val);
+                    if (val.trim() === "") {
+                      setExpenseSearchTerm("");
+                    }
+                  }}
+                  onSearch={(val) => {
+                    setExpenseSearchTerm(val.trim());
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Add Expense */}
+              <button
+                onClick={() => {
+                  // resetExpenseForm();
+                  setIsExpenseFormOpen(true);
+                }}
+                className="flex items-center gap-2 p-2 bg-white border rounded-xl hover:bg-gray-100"
+              >
+                <Plus className="w-4 h-4" />
+                Add Expense
+              </button>
+
+              {/* Manage Columns */}
+              <button
+                className="p-2 bg-white border rounded-lg hover:bg-gray-100"
+                onClick={() => setIsManageExpenseOpen(true)}
+                title="Manage Columns"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+
+              <RefreshButton loading={isRefreshing} onClick={handleRefresh} />
+            </div>
+          </div>
+
+          <ReusableTable
+            loading={isLoading}
+            tableId="OtherExpenses-Table"
+            columns={visibleExpenseColumns}
+            data={filteredOtherExpenses}
+            striped
+            hoverEffect
+            showSelection
+            emptyMessage="No expenses found"
+            maxHeight="420px"
+            pagination={true}
+            currentPage={expenseCurrentPage}
+            totalItems={filteredOtherExpenses.length}
+            totalPages={
+              Math.ceil(filteredOtherExpenses.length / expenseItemsPerPage) ||
+              1
+            }
+            itemsPerPage={expenseItemsPerPage}
+            onPageChange={(page) => setExpenseCurrentPage(page)}
+            onItemsPerPageChange={(val) => {
+              setExpenseItemsPerPage(val);
+              setExpenseCurrentPage(1);
+            }}
+            onEditSelected={(ids: (string | number)[]) => {
+              const rows = filteredOtherExpenses.filter((row) =>
+                ids.map(Number).includes(row.id)
+              );
+              handleEditExpenseSelected(rows);
+            }}
+            onDeleteSelected={(ids: (string | number)[]) => {
+              const rows = filteredOtherExpenses.filter((row) =>
+                ids.map(Number).includes(row.id)
+              );
+              handleDeleteExpenseSelected(rows);
+            }}
+          />
+
+          {/* Manage Columns — Other Expenses */}
+          <ManageColumns
+            open={isManageExpenseOpen}
+            onClose={() => setIsManageExpenseOpen(false)}
+            columns={expenseColumnsConfig}
+            onSave={(updated) => {
+              setExpenseColumnsConfig(updated);
+              setIsManageExpenseOpen(false);
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FuelExpenseManagement;

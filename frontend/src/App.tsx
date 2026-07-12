@@ -12,6 +12,7 @@ import SMTP from './pages/configuration/smtp/SMTP'
 import VehicleRegistry from './pages/fleetManagement/Fleet/fleet'
 import DriverRegistry from './pages/fleetManagement/driverAndSafetyProfile/driver'
 import Trip from './pages/fleetManagement/TripDispatcher/Trip'
+import FuelExpenseManagement from './pages/fleetManagement/fuelAndExpense/Fuelexpensemanagement'
 import Maintenance from './pages/fleetManagement/maintenance/maintenance'
 
 function App() {
@@ -89,6 +90,15 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <Trip />
+              </MainLayout>
+            </ProtectedRoute>}
+        />
+
+        <Route path="/fuel-expenses"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <FuelExpenseManagement/>
               </MainLayout>
             </ProtectedRoute>}
         />
