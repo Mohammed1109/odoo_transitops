@@ -7,11 +7,8 @@ class Vehicle(Base):
     __tablename__ = "vehicles"
 
     id = Column(Integer, primary_key=True, index=True)
-
     registration_number = Column(String(50), unique=True, nullable=False, index=True)
-
     vehicle_name = Column(String(150), nullable=False)
-
     vehicle_model = Column(String(150))
 
     manufacturer = Column(String(100))
