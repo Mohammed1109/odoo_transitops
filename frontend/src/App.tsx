@@ -9,6 +9,7 @@ import MainLayout from './layout/homeLayout'
 import SystemSettingsLayout from './layout/SystemSettingsLayout'
 import Administration from './pages/configuration/administrator/Administration'
 import SMTP from './pages/configuration/smtp/SMTP'
+import VehicleRegistry from './pages/fleetManagement/Fleet/fleet'
 
 function App() {
 
@@ -61,7 +62,17 @@ function App() {
         </Route>
 
 
- 
+        {/*Fleet */}
+        <Route path="/fleet"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <VehicleRegistry />
+              </MainLayout>
+            </ProtectedRoute>}
+        />
+
+
       </Routes>
 
     </>
