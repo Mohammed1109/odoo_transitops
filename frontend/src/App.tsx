@@ -1,7 +1,6 @@
 import { Toaster } from 'sonner'
 import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import ProtectedRoute from './hook/UseGloablProtectedRoute'
 import Login from './pages/login/login'
 import Home from './pages/home/home'
 import FirstTimeSetup from './pages/firsttimelogin/Firsttimelogin'
@@ -47,20 +46,16 @@ function App() {
         <Route
           path="/home"
           element={
-            <ProtectedRoute>
               <MainLayout>
                 <Home />
               </MainLayout>
-            </ProtectedRoute>
           }
         />
 
         <Route
           path="/admin-panel"
           element={
-            <ProtectedRoute>
               <SystemSettingsLayout />
-            </ProtectedRoute>
           }
         >
           <Route index element={<Navigate to="administration" replace />} />
@@ -73,47 +68,42 @@ function App() {
         {/*Fleet */}
         <Route path="/fleet"
           element={
-            <ProtectedRoute>
               <MainLayout>
                 <VehicleRegistry />
               </MainLayout>
-            </ProtectedRoute>}
+          }
         />
 
         <Route path="/drivers"
           element={
-            <ProtectedRoute>
               <MainLayout>
                 <DriverRegistry />
               </MainLayout>
-            </ProtectedRoute>}
+            }
         />
 
         <Route path="/trips"
           element={
-            <ProtectedRoute>
               <MainLayout>
                 <Trip />
               </MainLayout>
-            </ProtectedRoute>}
+            }
         />
 
         <Route path="/fuel-expenses"
           element={
-            <ProtectedRoute>
               <MainLayout>
                 <FuelExpenseManagement />
               </MainLayout>
-            </ProtectedRoute>}
+           }
         />
 
         <Route path="/maintenance"
           element={
-            <ProtectedRoute>
               <MainLayout>
                 <Maintenance />
               </MainLayout>
-            </ProtectedRoute>}
+          }
         />
 
 
@@ -121,9 +111,7 @@ function App() {
         <Route
           path="/analytics"
           element={
-            <ProtectedRoute>
               <ReportLayout />
-            </ProtectedRoute>
           }
         >
           {/* Default Route */}

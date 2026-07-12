@@ -1,15 +1,7 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-/**
- * NOTE ON BASE URL:
- * Your `role_router` is a plain APIRouter with routes like
- * "/create_new_role", "/get_all_roles", etc. Whatever prefix you mount it
- * under in your FastAPI app (e.g. `app.include_router(role_router, prefix="/api")`)
- * needs to match BASE_URL below. Adjust the "/api" segment if your backend
- * mounts it differently (e.g. "/api/roles").
- */
-const BASE_URL = `${globalThis.location.origin}/api`;
+const BASE_URL = `${globalThis.location.origin}/api/roles`;
 
 export interface RoleResponse {
     id: number;

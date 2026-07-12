@@ -56,3 +56,32 @@ class TripPriority:
     HIGH = "High"
 
     URGENT = "Urgent"
+
+# ==========================================================
+# Maintenance Status
+# ==========================================================
+
+class MaintenanceStatus:
+
+    PENDING = "Pending"
+
+    IN_PROGRESS = "In Progress"
+
+    COMPLETED = "Completed"
+
+    CANCELLED = "Cancelled"
+
+
+# ==========================================================
+# Maintenance Priority
+# ==========================================================
+
+class MaintenancePriority:
+
+    LOW = "Low"
+
+    NORMAL = "Normal"
+
+    HIGH = "High"
+
+    CRITICAL = "Critical"
