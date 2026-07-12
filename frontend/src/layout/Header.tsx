@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState, type JSX } from "react";
-import { Bell, Menu, X } from "lucide-react";
-import NotificationDropdown from "../components/header/NotificationDropdown";
+import { Menu, X } from "lucide-react";
 
 /* ======================================================
     TYPES
@@ -63,7 +62,6 @@ export default function Header({
   const [openProfile, setOpenProfile] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
 
-  const [openNotifications, setOpenNotifications] = useState(false);
   const notificationRef = useRef<HTMLDivElement | null>(null);
 
   /* ======================================================
@@ -79,17 +77,6 @@ export default function Header({
   /* ======================================================
       DUMMY NOTIFICATION COUNT
   ====================================================== */
-  const [notificationCount, setNotificationCount] = useState(4);
-
-  /* simulate clear event */
-  useEffect(() => {
-    function handleClear() {
-      setNotificationCount(0);
-    }
-    window.addEventListener("notifications-cleared", handleClear);
-    return () =>
-      window.removeEventListener("notifications-cleared", handleClear);
-  }, []);
 
   /* close notification dropdown */
   useEffect(() => {
@@ -98,7 +85,6 @@ export default function Header({
         notificationRef.current &&
         !notificationRef.current.contains(e.target as Node)
       ) {
-        setOpenNotifications(false);
       }
     }
 
@@ -151,27 +137,6 @@ export default function Header({
 
       {/* RIGHT */}
       <div className="flex items-center gap-5">
-        {/* Notifications */}
-        <div ref={notificationRef} className="relative">
-          <button
-            onClick={() => setOpenNotifications((s) => !s)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/50 border border-white/40 shadow-sm hover:shadow-md transition relative"
-          >
-            <Bell size={20} />
-
-            {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] font-bold text-white bg-red-500 rounded-full flex items-center justify-center">
-                {notificationCount}
-              </span>
-            )}
-          </button>
-
-          <NotificationDropdown
-            open={openNotifications}
-            onClose={() => setOpenNotifications(false)}
-          />
-        </div>
-
         {/* Profile */}
         <div ref={profileRef} className="relative">
           <button
@@ -197,10 +162,9 @@ export default function Header({
             className={`
               absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border
               transition-all duration-200
-              ${
-                openProfile
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-95 pointer-events-none"
+              ${openProfile
+                ? "opacity-100 scale-100"
+                : "opacity-0 scale-95 pointer-events-none"
               }
             `}
           >
@@ -214,13 +178,6 @@ export default function Header({
             </div>
 
             <div className="p-3 flex gap-2">
-              <Link
-                to="/settings"
-                className="flex-1 text-xs border rounded-lg py-2 text-center"
-              >
-                Profile
-              </Link>
-
               <button
                 className="flex-1 text-xs bg-red-500 text-white rounded-lg py-2"
               >

@@ -1,119 +1,88 @@
-import { useEffect, useRef } from "react";
 
-type Vehicle = {
-  x: number;
-  y: number;
-  speed: number;
-  progress: number;
-};
 
-type Route = {
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-};
-
-export default function FleetCanvasBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animation: number;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-
-    resize();
-    window.addEventListener("resize", resize);
-
-    const ROUTE_COUNT = 10;
-
-    const routes: Route[] = Array.from({ length: ROUTE_COUNT }).map(() => ({
-      startX: Math.random() * canvas.width,
-      startY: Math.random() * canvas.height,
-      endX: Math.random() * canvas.width,
-      endY: Math.random() * canvas.height,
-    }));
-
-    const vehicles: Vehicle[] = routes.map((r) => ({
-      x: r.startX,
-      y: r.startY,
-      progress: Math.random(),
-      speed: 0.002 + Math.random() * 0.002,
-    }));
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      routes.forEach((route, index) => {
-        ctx.beginPath();
-        ctx.moveTo(route.startX, route.startY);
-        ctx.lineTo(route.endX, route.endY);
-
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 8]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.beginPath();
-        ctx.arc(route.startX, route.startY, 4, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(route.endX, route.endY, 4, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.fill();
-
-        const vehicle = vehicles[index];
-
-        vehicle.progress += vehicle.speed;
-
-        if (vehicle.progress > 1) {
-          vehicle.progress = 0;
-        }
-
-        vehicle.x =
-          route.startX +
-          (route.endX - route.startX) * vehicle.progress;
-
-        vehicle.y =
-          route.startY +
-          (route.endY - route.startY) * vehicle.progress;
-
-        ctx.beginPath();
-        ctx.arc(vehicle.x, vehicle.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = "#E08D2C";
-        ctx.shadowColor = "#E08D2C";
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      animation = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animation);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
+export default function FleetSidebarBackground() {
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full opacity-60"
-    />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+
+      {/* Top Right Circle */}
+      <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-white/5" />
+
+      {/* Bottom Left Circle */}
+      <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-[#E08D2C]/10" />
+
+      <svg
+        className="absolute inset-0 w-full h-full"
+        viewBox="0 0 300 700"
+        fill="none"
+      >
+        {/* Vertical Roads */}
+        <path
+          d="M60 0V700"
+          stroke="white"
+          strokeOpacity="0.05"
+          strokeWidth="2"
+          strokeDasharray="8 8"
+        />
+
+        <path
+          d="M150 0V700"
+          stroke="white"
+          strokeOpacity="0.04"
+          strokeWidth="2"
+          strokeDasharray="8 8"
+        />
+
+        <path
+          d="M240 0V700"
+          stroke="white"
+          strokeOpacity="0.05"
+          strokeWidth="2"
+          strokeDasharray="8 8"
+        />
+
+        {/* Horizontal Roads */}
+        <path
+          d="M0 120H300"
+          stroke="white"
+          strokeOpacity="0.05"
+          strokeWidth="2"
+        />
+
+        <path
+          d="M0 280H300"
+          stroke="white"
+          strokeOpacity="0.04"
+          strokeWidth="2"
+        />
+
+        <path
+          d="M0 440H300"
+          stroke="white"
+          strokeOpacity="0.05"
+          strokeWidth="2"
+        />
+
+        <path
+          d="M0 600H300"
+          stroke="white"
+          strokeOpacity="0.04"
+          strokeWidth="2"
+        />
+
+        {/* Depot Points */}
+        {[
+          [60, 120],
+          [150, 280],
+          [240, 440],
+          [60, 600],
+          [240, 120],
+        ].map(([x, y], i) => (
+          <g key={i}>
+            <circle cx={x} cy={y} r="6" fill="#E08D2C" opacity="0.18" />
+            <circle cx={x} cy={y} r="2.5" fill="#E08D2C" />
+          </g>
+        ))}
+      </svg>
+    </div>
   );
 }

@@ -14,6 +14,8 @@ import DriverRegistry from './pages/fleetManagement/driverAndSafetyProfile/drive
 import Trip from './pages/fleetManagement/TripDispatcher/Trip'
 import FuelExpenseManagement from './pages/fleetManagement/fuelAndExpense/Fuelexpensemanagement'
 import Maintenance from './pages/fleetManagement/maintenance/maintenance'
+import ReportLayout from './layout/ReportLayout'
+import Fuelcosting from './pages/fleetManagement/analytics/fuelcosting'
 
 function App() {
 
@@ -98,7 +100,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <FuelExpenseManagement/>
+                <FuelExpenseManagement />
               </MainLayout>
             </ProtectedRoute>}
         />
@@ -111,6 +113,29 @@ function App() {
               </MainLayout>
             </ProtectedRoute>}
         />
+
+
+        {/* Analytics */}
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <ReportLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Default Route */}
+          <Route
+            index
+            element={<Navigate to="fuelCost" replace />}
+          />
+
+          <Route
+            path="fuelCost"
+            element={<Fuelcosting />}
+          />
+        </Route>
+
 
       </Routes>
 
