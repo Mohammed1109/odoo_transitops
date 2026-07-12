@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { Bell, Menu, X } from "lucide-react";
-import NotificationDropdown from "../components/NotificationDropdown";
+import NotificationDropdown from "../components/header/NotificationDropdown";
 
 /* ======================================================
     TYPES

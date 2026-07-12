@@ -38,10 +38,8 @@
 }
 
 /* slide slow on home page for first time  */
-@layer utilities {
-  .animate-fadeIn {
-    animation: fadeIn 0.4s ease-out forwards;
-  }
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {
