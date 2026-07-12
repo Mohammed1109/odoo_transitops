@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 
 class LoginRequest(BaseModel):
 
-    username: str
+    username_or_email: str
     password: str
 
 

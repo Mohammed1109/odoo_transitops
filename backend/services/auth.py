@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session  # type: ignore
+from sqlalchemy import or_ #type:ignore
 
 from database.models.role import Role
 from database.models.user import User
@@ -12,24 +13,26 @@ from database.types import now_utc
 
 
 # --------------------------------------------------
-# Get User By Username
+# Get User By Username or email
 # --------------------------------------------------
-def get_user_by_username(db: Session, username: str) -> User | None:
+def get_user_by_username_or_email(db: Session, username_or_email: str) -> User | None:
+
     return (
         db.query(User)
         .filter(
-            User.username == username,
+            or_(
+                User.username == username_or_email,
+                User.email == username_or_email,
+            )
         )
         .first()
     )
-
-
 # --------------------------------------------------
 # Authenticate User
 # --------------------------------------------------
-def authenticate_user(db: Session, username: str, password: str) -> User | None:
+def authenticate_user(db: Session, username_or_email: str, password: str) -> User | None:
 
-    user = get_user_by_username(db, username)
+    user = get_user_by_username_or_email(db, username_or_email)
 
     if not user:
         return None
@@ -46,12 +49,12 @@ def authenticate_user(db: Session, username: str, password: str) -> User | None:
 # --------------------------------------------------
 # Login
 # --------------------------------------------------
-def login(db: Session, username: str, password: str) -> LoginResponse:
+def login(db: Session, username_or_email: str, password: str) -> LoginResponse:
 
-    user = authenticate_user(db,username,password)
+    user = authenticate_user(db,username_or_email,password)
 
     if not user:
-        raise ValueError("Invalid username or password.")
+        raise ValueError("Invalid credentials.")
 
     token = create_access_token(
         {
