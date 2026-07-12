@@ -204,6 +204,14 @@ def get_all_vehicles(
 
     total = query.count()
 
+    # ---------------------------------------
+    # Pagination
+    # ---------------------------------------
+
+    vehicles = (
+        query.order_by(Vehicle.id.desc())
+        .all()
+    )
 
     return {
 
@@ -211,6 +219,7 @@ def get_all_vehicles(
 
         "total_records": total,
 
+        "data": vehicles,
     }
 
 
