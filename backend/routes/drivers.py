@@ -2,6 +2,12 @@ from fastapi import APIRouter, Depends, Query, Path, status
 from sqlalchemy.orm import Session #type: ignore
 
 from database.database import get_db
+from database.models.user import User
+
+from middleware.auth import (
+    require_auth,
+    require_role,
+)
 
 # ==========================================================
 # Schemas
@@ -40,13 +46,14 @@ drivers_router = APIRouter()
 # ==========================================================
 
 @drivers_router.post(
-    "/",
+    "/create_new_driver",
     status_code=status.HTTP_201_CREATED,
     summary="Create Driver",
 )
 def create_new_driver(
     payload: DriverCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("Admin")),
 ):
     return create_driver(
         db=db,
@@ -68,6 +75,7 @@ def list_drivers(
     search: str | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth),
 ):
     return get_all_drivers(
         db=db,
