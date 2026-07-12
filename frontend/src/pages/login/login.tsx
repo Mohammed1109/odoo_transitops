@@ -6,7 +6,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  ChevronDown,
   ShieldCheck,
   Truck,
   ArrowRight,
@@ -15,15 +14,8 @@ import {
   TrendingUp,
   DollarSign,
 } from "lucide-react";
+import { authenticateUserReact } from "../../ts/login/login";
 
-import {
-  loginUser,
-  requestPasswordReset,
-  ROLES,
-  ROLE_HOME,
-  ROLE_SCOPE,
-  type Role,
-} from "../../ts/login/login";
 
 
 const FEATURES = [
@@ -56,7 +48,6 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<Role>("Dispatcher");
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -64,12 +55,14 @@ export default function Login() {
 
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSending, setForgotSending] = useState(false);
+  const [forgotSending, ] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       setError("Email and password are required.");
       return;
     }
@@ -78,44 +71,63 @@ export default function Login() {
       setLoading(true);
       setError("");
 
-      const res = await loginUser({ email, password, role, rememberMe });
+      const result = await authenticateUserReact(
+        email,
+        password
+      );
 
-      if (!res.success) {
-        setError(res.message || "Invalid credentials.");
+      if (!result.success) {
+        setError(result.message || "Invalid email or password.");
+        toast.error(result.message || "Login failed.");
         return;
       }
 
-      if (res.isFirstLogin) {
+      const user = result.data!;
+
+      toast.success(`Welcome back, ${user.full_name}!`);
+
+      console.log("Logged in user:", user);
+
+      // Force password reset on first login
+      if (user.is_first_login) {
         navigate("/reset-password");
         return;
       }
 
-      toast.success(`Signed in as ${res.role ?? role}`);
-      navigate(ROLE_HOME[res.role ?? role]);
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong. Please try again.");
+      // Navigate based on role
+      switch (user.role.toLowerCase()) {
+        case "admin":
+          navigate("/home");
+          break;
+
+        case "manager":
+          navigate("/home");
+          break;
+
+        case "dispatcher":
+          navigate("/home");
+          break;
+
+        case "driver":
+          navigate("/home");
+          break;
+
+        default:
+          navigate("/home");
+          break;
+      }
+    } catch (error: any) {
+      console.error(error);
+
+      setError(error.message || "Something went wrong.");
+      toast.error(error.message || "Unable to login.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail) return;
+  const handleForgotPassword = async () => {
 
-    try {
-      setForgotSending(true);
-      const res = await requestPasswordReset({ email: forgotEmail });
-      if (res.success) {
-        toast.success("Reset link sent — check your inbox.");
-        setForgotOpen(false);
-        setForgotEmail("");
-      } else {
-        toast.error(res.message || "Could not send reset email.");
-      }
-    } finally {
-      setForgotSending(false);
-    }
   };
 
   return (
@@ -283,33 +295,6 @@ export default function Login() {
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[13.5px] font-medium text-gray-700 mb-1.5">
-                    Role (RBAC)
-                  </label>
-                  <div className="relative">
-                    <ShieldCheck
-                      size={16}
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-                    />
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value as Role)}
-                      className="w-full pl-10 pr-9 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-[#7C6DFF] focus:ring-2 focus:ring-[#7C6DFF]/15 focus:bg-white transition-colors appearance-none cursor-pointer"
-                    >
-                      {ROLES.map((r: Role) => (
-                        <option key={r} value={r}>
-                          {r} &mdash; {ROLE_SCOPE[r]}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={15}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                    />
                   </div>
                 </div>
 

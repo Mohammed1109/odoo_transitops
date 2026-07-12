@@ -18,7 +18,7 @@ def login_user(request: LoginRequest, db: Session = Depends(get_db)):
     try:
         return login(
             db=db,
-            username=request.username,
+            username_or_email=request.username_or_email,
             password=request.password,
         )
 

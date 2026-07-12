@@ -58,7 +58,7 @@ class TripBase(BaseModel):
     # Odometer
     # ==========================================================
 
-    start_odometer: float = Field(0, ge=0)
+    start_odometer: Optional[float] = None
 
     end_odometer: float = Field(0, ge=0)
 
@@ -171,7 +171,7 @@ class TripUpdate(BaseModel):
 
     customer_email: Optional[str] = None
 
-    start_odometer: Optional[float] = Field(None, ge=0)
+    
 
     end_odometer: Optional[float] = Field(None, ge=0)
 
@@ -183,9 +183,7 @@ class TripUpdate(BaseModel):
 
     completion_time: Optional[datetime] = None
 
-    start_latitude: Optional[float] = None
-
-    start_longitude: Optional[float] = None
+    
 
     end_latitude: Optional[float] = None
 
