@@ -1,0 +1,741 @@
+/* --- ICONS MUST BE IMPORTED FIRST --- */
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+@import "boxicons/css/boxicons.min.css";
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Put this in your global CSS or inside the component <style>{`...`}</style> */
+/* Ensure header is visually above map: make header z-index >= 50 in your header component (z-50) */
+
+/* Force Leaflet panes & container to sit below the header */
+
+.my-blue-map {
+  filter:
+    grayscale(100%) brightness(1.15) invert(90%) sepia(20%) hue-rotate(180deg) saturate(300%) contrast(0.9);
+}
+
+
+
+.leaflet-container,
+.leaflet-pane,
+.leaflet-tile-pane,
+.leaflet-marker-pane,
+.leaflet-shadow-pane,
+.leaflet-overlay-pane,
+.leaflet-popup-pane {
+  z-index: 0 !important;
+}
+
+/* Let popups show above map content but still below header */
+.leaflet-popup {
+  z-index: 5 !important;
+}
+
+/* Keep your custom marker visible inside the map, but lower than header */
+.custom-div-icon {
+  z-index: 2 !important;
+}
+
+/* Prevent wrapper creating a higher stacking context */
+.map-wrapper {
+  z-index: 0;
+  position: relative;
+}
+
+/* Tile tint/filter to match UI theme (muted) */
+.my-leaflet-tiles img {
+  filter: grayscale(40%) contrast(0.95) hue-rotate(-6deg) saturate(0.9);
+  opacity: 0.96;
+}
+
+/* Pulse marker styling (keeps animation inside map) */
+.custom-div-icon {
+  background: transparent;
+  border: none;
+}
+
+.map-marker-root {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.rtl-text {
+  direction: rtl;
+  text-align: right;
+}
+
+
+
+.map-marker-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #2563eb;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.12);
+}
+
+.map-marker-root::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.12);
+  animation: map-pulse 1.8s infinite ease-out;
+}
+
+@keyframes map-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 0.9;
+  }
+
+  70% {
+    transform: translate(-50%, -50%) scale(1.6);
+    opacity: 0.08;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* make leaflet container and panes low z-index */
+.leaflet-container,
+.leaflet-pane,
+.leaflet-tile-pane,
+.leaflet-marker-pane,
+.leaflet-shadow-pane,
+.leaflet-overlay-pane,
+.leaflet-popup-pane {
+  z-index: 0 !important;
+}
+
+/* add to your component <style> or global CSS */
+.my-leaflet-tiles img {
+  filter: grayscale(40%) contrast(0.9) hue-rotate(-10deg) saturate(0.9);
+  opacity: 0.95;
+}
+
+/* keep marker dots visible inside map, but still below header */
+.custom-div-icon {
+  z-index: 1 !important;
+}
+
+/* If you want popups still to appear above map content but below header */
+.leaflet-popup {
+  z-index: 5 !important;
+}
+
+/* Ensure map wrapper does not create weird stacking context */
+.map-wrapper {
+  z-index: 0;
+  position: relative;
+}
+
+
+@keyframes licenseButtonClick {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+
+  50% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.2;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-license-button-click {
+  animation: licenseButtonClick 0.4s ease-out;
+}
+
+.animate-ripple {
+  animation: ripple 0.6s ease-out;
+}
+
+
+
+
+
+
+
+/* ---------- Option styles (some browsers respect) ---------- */
+.fixed.inset-0 select option,
+div.fixed.inset-0 select option {
+  background: #fff;
+  color: #0f172a;
+}
+
+/* ---------- Helper classes (optional): apply to elements if you later want explicit control) ---------- */
+.fancy-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 3.2rem;
+  padding-left: 0.9rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  transition: transform 180ms ease, box-shadow 220ms ease, border-color 180ms ease;
+}
+
+.fancy-input {
+  padding-left: 0.9rem;
+  padding-right: 0.9rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  transition: transform 180ms ease, box-shadow 220ms ease, border-color 180ms ease;
+}
+
+/* ---------- Small mobile adjustments ---------- */
+@media (max-width: 640px) {
+
+  .fixed.inset-0 select,
+  div.fixed.inset-0 select,
+  .fixed.inset-0 input[type="email"],
+  div.fixed.inset-0 input[type="email"] {
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.5rem;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* If you want smaller arrow color, change stroke in SVG above (stroke='%234A5568') */
+
+/*-------------------------------------------- */
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+
+/* Add this to your global CSS file */
+@keyframes pulse-scale {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 0.6s ease-out;
+}
+
+
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  border: 2px solid #f1f5f9;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+
+/* Smooth transitions for sidebar */
+.sidebar-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Active state styling */
+.sidebar-item-active {
+  background-color: #1e40af;
+  border-right: 4px solid #60a5fa;
+}
+
+.sidebar-item-active:hover {
+  background-color: #1e40af;
+}
+
+
+table {
+  table-layout: auto;
+}
+
+table th,
+table td {
+  white-space: nowrap;
+}
+
+th,
+td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/*----------------------------------------------------------------------------------------------------*/
+
+/* === UDP Port Check soft animations & helpers === */
+
+@keyframes fadeInUpSoft {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeOutDownSoft {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes slideInRightSoft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up-soft {
+  animation: fadeInUpSoft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-out-down-soft {
+  animation: fadeOutDownSoft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-in-right-soft {
+  animation: slideInRightSoft 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.transition-smooth {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-extra-smooth {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.backdrop-blur-ultra-light {
+  backdrop-filter: blur(4px);
+}
+
+
+
+
+/*----------------------------------------------------------------------------------------------------*/
+
+/* ===== GlobalOutage pulsing markers ===== */
+
+.outage-marker-wrapper {
+  position: relative;
+}
+
+.outage-marker-outer {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  border-width: 2px;
+  opacity: 0.9;
+  animation: outage-pulse 1.8s ease-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.06), transparent);
+}
+
+.outage-marker-inner {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.35);
+}
+
+@keyframes outage-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: scale(1.25);
+    opacity: 0.35;
+  }
+
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+
+
+
+/* ===============================
+   NETZIYA CUSTOM SCROLLBAR
+   =============================== */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 transparent;
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #94a3b8;
+  /* slate-400 */
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+  /* slate-500 */
+}
+
+
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-page-in {
+  animation: pageFadeIn 0.45s ease-out both;
+}
+
+.animate-content-in {
+  animation: contentFadeIn 0.6s ease-out both;
+}
+
+.animate-scale-in {
+  animation: softScaleIn 0.4s ease-out both;
+}
+
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.animate-breathe {
+  animation: breathe 2.5s ease-in-out infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.animate-flicker {
+  animation: flicker 1.2s infinite;
+}
+
+
+@keyframes softPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(156,163,175,0));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 6px rgba(156,163,175,0.4));
+  }
+}
+
+.animate-soft {
+  animation: softPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(16,185,129,0));
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 6px rgba(16,185,129,0.5));
+    opacity: 1;
+  }
+}
+
+.animate-success {
+  animation: successPulse 2.5s ease-in-out infinite;
+}
+
+
+
+@keyframes serverPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(99,102,241,0));
+  }
+  50% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 6px rgba(99,102,241,0.4));
+  }
+}
+
+.animate-server {
+  animation: serverPulse 2.5s ease-in-out infinite;
+}
+
+
+@keyframes pingableBeat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 0px rgba(16,185,129,0));
+  }
+  40% {
+    transform: scale(1.25);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(16,185,129,0.5));
+  }
+  60% {
+    transform: scale(0.95);
+  }
+}
+
+.animate-pingable {
+  animation: pingableBeat 1.8s ease-in-out infinite;
+}
+
+
+@keyframes networkFlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+    filter: drop-shadow(0 0 0px rgba(14,165,233,0));
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(14,165,233,0.4));
+  }
+}
+
+.animate-network {
+  animation: networkFlow 2.5s ease-in-out infinite;
+}
+
+
+@keyframes globeRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 0px rgba(139,92,246,0));
+  }
+  50% {
+    transform: rotate(180deg) scale(1.08);
+    filter: drop-shadow(0 0 6px rgba(139,92,246,0.4));
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    filter: drop-shadow(0 0 0px rgba(139,92,246,0));
+  }
+}
+
+
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.25s ease-out;
+}
